@@ -5989,30 +5989,32 @@ Tus funciones principales son:
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                 .replace(/negro|negra|negros/gi, 'black')
                 .replace(/rojo|roja|rojos/gi, 'red passion')
-                .replace(/rosa|rosado|rosada/gi, 'soft pink')
-                .replace(/blanco|blanca/gi, 'pure white')
-                .replace(/morado|violeta|púrpura|purpura/gi, 'glam purple')
-                .replace(/verde/gi, 'emerald green')
-                .replace(/azul/gi, 'royal blue')
-                .replace(/dorado|oro/gi, 'gold foil flakes')
-                .replace(/plateado|plata/gi, 'silver chrome')
-                .replace(/pastel/gi, 'pastel palette')
-                .replace(/mariposa|mariposas/gi, 'butterflies nail art')
-                .replace(/flor|flores/gi, 'floral delicate nail art')
-                .replace(/francesa|french/gi, 'french tip manicure')
-                .replace(/kapping|nivelacion|nivelación/gi, 'kapping gel builder structured manicure')
-                .replace(/corta|cortas/gi, 'short natural nails')
-                .replace(/larga|largas/gi, 'long coffin almond nails')
-                .replace(/(quiero|generar|genera|foto|imagen|diseño|diseno|uñas|unas|favor|por|me|gustaria|muestra|dibuja|crea|ver|una|de|con|para)/gi, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
+        window.getReliableNailDesignImage = function(userText, extractedPrompt) {
+            const q = ((extractedPrompt || '') + ' ' + (userText || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-            if (!promptEn || promptEn.length < 3) {
-                promptEn = "luxury elegant gel manicure nail art design";
+            if ((q.includes('rojo') || q.includes('roja') || q.includes('red')) && (q.includes('blanco') || q.includes('blanca') || q.includes('white'))) {
+                return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=1000&auto=format&fit=crop';
             }
-
-            return `luxury professional manicure nail art, ${promptEn}, high detail 8k photoshoot, ultra realistic`;
-        }
+            if (q.includes('rojo') || q.includes('roja') || q.includes('red') || q.includes('carmesi') || q.includes('rubi')) {
+                return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=1000&auto=format&fit=crop';
+            }
+            if (q.includes('negro') || q.includes('negra') || q.includes('black') || q.includes('dark')) {
+                return 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1000&auto=format&fit=crop';
+            }
+            if (q.includes('rosa') || q.includes('rosado') || q.includes('pink') || q.includes('nude') || q.includes('pastel')) {
+                return 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=1000&auto=format&fit=crop';
+            }
+            if (q.includes('blanco') || q.includes('blanca') || q.includes('white') || q.includes('francesa') || q.includes('french')) {
+                return 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1000&auto=format&fit=crop';
+            }
+            if (q.includes('dorado') || q.includes('oro') || q.includes('gold') || q.includes('brillo') || q.includes('glitter')) {
+                return 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=1000&auto=format&fit=crop';
+            }
+            if (q.includes('azul') || q.includes('blue')) {
+                return 'https://images.unsplash.com/photo-1599948019395-60b64d39f75a?w=1000&auto=format&fit=crop';
+            }
+            return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=1000&auto=format&fit=crop';
+        };
 
         window.handleAiChatSubmit = async function(event) {
             if (event) event.preventDefault();
@@ -6112,21 +6114,14 @@ Tus funciones principales son:
 
                 let imageCardHtml = '';
                 if (isImageRequested || imagePromptExtracted) {
-                    const seed = Math.floor(Math.random() * 9000000) + Date.now();
-                    const cleanPromptText = generateCleanNailPrompt(userText, imagePromptExtracted);
-                    const encodedPrompt = encodeURIComponent(cleanPromptText);
-                    const imgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`;
+                    const imgUrl = window.getReliableNailDesignImage(userText, imagePromptExtracted);
 
                     imageCardHtml = `
                         <div class="space-y-2 mt-2 pt-1 border-t border-purple-500/20">
                             <div class="relative group rounded-2xl overflow-hidden border border-purple-500/40 shadow-lg bg-gray-900 min-h-[200px] flex items-center justify-center">
-                                <div id="img-loader-${seed}" class="absolute inset-0 bg-gray-900/90 flex flex-col items-center justify-center gap-2 text-purple-300 z-10 transition-opacity duration-300">
-                                    <i class="fa-solid fa-wand-magic-sparkles fa-spin text-2xl text-amber-400"></i>
-                                    <span class="text-[11px] font-bold text-purple-200">Val IA está generando la foto en HD...</span>
-                                </div>
-                                <img src="${imgUrl}" alt="Diseño de Uñas IA" onload="document.getElementById('img-loader-${seed}')?.remove()" onerror="this.onerror=null; this.src=getBeautyFailoverImage('${escapeHtml(userText)}'); document.getElementById('img-loader-${seed}')?.remove();" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105">
+                                <img src="${imgUrl}" alt="Diseño de Uñas HD" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl">
                                 <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-400/30 flex items-center gap-1 shadow-sm z-20">
-                                    <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Diseño Generado por IA
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Diseño NailsConVal HD
                                 </div>
                             </div>
                             <div class="flex flex-wrap gap-1.5 pt-1">
