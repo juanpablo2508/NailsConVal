@@ -1759,29 +1759,56 @@
             </div>
 
             <div id="admin-tab-content-charts" class="admin-tab-content space-y-6">
+
+                <!-- BARRA DE CONTROL FINANCIERO Y EXPORTACIÓN -->
+                <div class="bg-gray-900 p-4.5 rounded-2xl border border-gray-800 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg border border-emerald-500/30">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white">Panel de Finanzas & Contabilidad Profesional</h3>
+                            <p class="text-[11px] text-gray-400">Control de ingresos reales completados, abonos netos retenidos/devueltos y descuentos.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <select id="admin-financial-period-select" onchange="renderAdminCharts()" class="bg-gray-950 border border-gray-700 text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl focus:outline-none cursor-pointer">
+                            <option value="all">📅 Histórico Completo</option>
+                            <option value="this_month">📅 Este Mes</option>
+                            <option value="last_month">📅 Mes Anterior</option>
+                        </select>
+
+                        <button onclick="exportFinancialReportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer">
+                            <i class="fa-solid fa-file-csv"></i>
+                            <span>Exportar Reporte Contable (CSV)</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
-                        <span class="text-xs text-gray-400 block mb-1">Ingresos Totales</span>
+                    <div class="bg-gray-900 p-5 rounded-2xl border border-emerald-500/30 shadow-md">
+                        <span class="text-xs text-gray-400 block mb-1">Ingresos Reales (Completados)</span>
                         <h4 id="metric-total-income" class="text-2xl font-extrabold text-emerald-400 font-mono">$0 COP</h4>
-                        <span class="text-[10px] text-gray-500 mt-2 block">Acumulado histórico</span>
+                        <span class="text-[10px] text-emerald-400/80 mt-2 block flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Solo citas completadas</span>
+                    </div>
+
+                    <div class="bg-gray-900 p-5 rounded-2xl border border-amber-500/30 shadow-md">
+                        <span class="text-xs text-gray-400 block mb-1">Ingresos Proyectados</span>
+                        <h4 id="metric-pending-income" class="text-2xl font-extrabold text-amber-300 font-mono">$0 COP</h4>
+                        <span class="text-[10px] text-amber-300/80 mt-2 block flex items-center gap-1"><i class="fa-solid fa-clock"></i> Citas por realizar</span>
                     </div>
 
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
-                        <span class="text-xs text-gray-400 block mb-1">Total Citas Registradas</span>
-                        <h4 id="metric-total-bookings" class="text-2xl font-extrabold text-brand-300 font-mono">0</h4>
-                        <span class="text-[10px] text-gray-500 mt-2 block">Reservas en sistema</span>
-                    </div>
-
-                    <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
-                        <span class="text-xs text-gray-400 block mb-1">Abonos Recibidos</span>
+                        <span class="text-xs text-gray-400 block mb-1">Abonos Recibidos Netos</span>
                         <h4 id="metric-total-abonos" class="text-2xl font-extrabold text-amber-400 font-mono">$0 COP</h4>
-                        <span class="text-[10px] text-gray-500 mt-2 block">Vía Llave 0090984300</span>
+                        <span id="metric-abonos-detail" class="text-[10px] text-gray-400 mt-2 block truncate">Descontando devoluciones</span>
                     </div>
 
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
-                        <span class="text-xs text-gray-400 block mb-1">Servicio Más Popular</span>
-                        <h4 id="metric-top-service" class="text-base font-bold text-white truncate">Manicura Semipermanente</h4>
-                        <span class="text-[10px] text-gray-500 mt-2 block">Basado en agenda</span>
+                        <span class="text-xs text-gray-400 block mb-1">Descuentos Otorgados</span>
+                        <h4 id="metric-total-discounts-given" class="text-xl font-extrabold text-purple-300 font-mono">$0 COP</h4>
+                        <span class="text-[10px] text-purple-400/80 mt-2 block">Beneficios de promociones</span>
                     </div>
 
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
@@ -3614,8 +3641,31 @@
                         <span class="block font-bold text-amber-300">${escapeHtml(app.dateKey || app.appointmentDateIso || '')}</span>
                         <span class="text-[10px] text-gray-400">${escapeHtml(app.time || '')}</span>
                     </td>
+                let abonoDisplay = `<span class="font-bold text-emerald-400 font-mono">${app.paidStatus || 'Abono $10k'}</span>`;
+                if (app.status === 'cancelada') {
+                    if (app.isRefunded) {
+                        abonoDisplay = `<span class="font-bold text-rose-400 font-mono text-[11px]"><i class="fa-solid fa-rotate-left"></i> -$10k (Devuelto)</span>`;
+                    } else {
+                        abonoDisplay = `<span class="font-bold text-amber-300 font-mono text-[11px]"><i class="fa-solid fa-lock"></i> +$10k (Retenido)</span>`;
+                    }
+                }
+
+                tr.innerHTML = `
                     <td class="p-3">
-                        <span class="font-bold text-emerald-400 font-mono">${app.paidStatus || 'Abono $10k'}</span>
+                        <span class="font-bold text-white block flex items-center">${escapeHtml(app.name || 'Cliente')} ${walkInTag}</span>
+                        <span class="text-[10px] text-gray-400 font-mono">${escapeHtml(app.phone || '')}</span>
+                    </td>
+                    <td class="p-3 font-semibold text-gray-300">
+                        <span class="block">${escapeHtml(app.service || 'Servicios Varios')}</span>
+                        ${promoBadge}
+                        ${app.notes ? `<span class="block text-[11px] text-gray-400 italic mt-1 max-w-xs truncate" title="${escapeHtml(app.notes)}">📝 ${escapeHtml(app.notes)}</span>` : ''}
+                    </td>
+                    <td class="p-3">
+                        <span class="block font-bold text-amber-300">${escapeHtml(app.dateKey || app.appointmentDateIso || '')}</span>
+                        <span class="text-[10px] text-gray-400">${escapeHtml(app.time || '')}</span>
+                    </td>
+                    <td class="p-3">
+                        ${abonoDisplay}
                     </td>
                     <td class="p-3">${statusBadge}</td>
                     <td class="p-3 text-right space-x-1">
@@ -3631,10 +3681,78 @@
                         <button onclick="changeBookingStatus('${app.id || ''}', 'cancelada')" class="bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-lg text-xs font-bold cursor-pointer" title="Cancelar Cita">
                             <i class="fa-solid fa-ban"></i>
                         </button>
+                        ${app.status === 'cancelada' ? `<button onclick="toggleAbonoRefund('${app.id || ''}')" class="${app.isRefunded ? 'bg-amber-600 hover:bg-amber-700' : 'bg-purple-600 hover:bg-purple-700'} text-white p-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all" title="${app.isRefunded ? 'Abono devuelto (Clic para marcar como retenido)' : 'Marcar Abono de $10k como Devuelto al Cliente'}"><i class="fa-solid fa-hand-holding-dollar"></i></button>` : ''}
                     </td>
                 `;
                 tableBody.appendChild(tr);
             });
+        };
+
+        window.toggleAbonoRefund = function(appId) {
+            let apps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
+            const idx = apps.findIndex(a => a.id === appId);
+            if (idx >= 0) {
+                apps[idx].isRefunded = !apps[idx].isRefunded;
+                localStorage.setItem('ncv_appointments', JSON.stringify(apps));
+                if (window.dbInstance && window.firestoreUtils && appId) {
+                    try {
+                        const { doc, setDoc } = window.firestoreUtils;
+                        setDoc(doc(window.dbInstance, 'appointments', appId), { isRefunded: apps[idx].isRefunded }, { merge: true });
+                    } catch(e){}
+                }
+                showToast(apps[idx].isRefunded ? '💸 Cita marcada con abono de $10.000 COP devuelto.' : '💰 Cita marcada con abono de $10.000 COP retenido.');
+                renderAdminBookingsTable();
+                renderAdminCharts();
+            }
+        };
+
+        window.exportFinancialReportCSV = function() {
+            const allApps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
+            if (allApps.length === 0) {
+                showToast("No hay datos de citas para exportar.", "error");
+                return;
+            }
+
+            let csvContent = "\uFEFF#;Fecha;Cliente;Telefono;Servicio;Estado;Valor Servicio (COP);Abono Status;Descuento Aplicado\n";
+
+            allApps.forEach((app, idx) => {
+                let price = 0;
+                if (app.service) {
+                    const match = app.service.match(/\$([\d.]+)\s*COP/);
+                    if (match) {
+                        price = parseInt(match[1].replace(/\./g, ''), 10);
+                    }
+                }
+
+                let abonoStatus = "Recibido ($10k)";
+                if (app.status === 'cancelada') {
+                    abonoStatus = app.isRefunded ? "Devuelto (-$10k)" : "Retenido (+$10k)";
+                }
+
+                const line = [
+                    idx + 1,
+                    `"${(app.dateKey || app.appointmentDateIso || '').replace(/"/g, '""')}"`,
+                    `"${(app.name || 'Cliente').replace(/"/g, '""')}"`,
+                    `"${(app.phone || '').replace(/"/g, '""')}"`,
+                    `"${(app.service || 'Servicio').replace(/"/g, '""')}"`,
+                    `"${(app.status || 'confirmada').toUpperCase()}"`,
+                    price,
+                    `"${abonoStatus}"`,
+                    `"${(app.promoCode || 'Sin Código').replace(/"/g, '""')}"`
+                ].join(";");
+
+                csvContent += line + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Reporte_Financiero_NailsConVal_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("📊 Reporte financiero CSV descargado con éxito.");
         };
 
         window.changeBookingStatus = function(appId, newStatus) {
