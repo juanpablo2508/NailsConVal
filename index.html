@@ -1759,29 +1759,41 @@
             </div>
 
             <div id="admin-tab-content-charts" class="admin-tab-content space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
-                        <span class="text-xs text-gray-400 block mb-1">Ingresos Totales (Estimado)</span>
+                        <span class="text-xs text-gray-400 block mb-1">Ingresos Totales</span>
                         <h4 id="metric-total-income" class="text-2xl font-extrabold text-emerald-400 font-mono">$0 COP</h4>
-                        <span class="text-[10px] text-gray-500 mt-2 block">Acumulado mensual histórico</span>
+                        <span class="text-[10px] text-gray-500 mt-2 block">Acumulado histórico</span>
                     </div>
 
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
-                        <span class="text-xs text-gray-400 block mb-1">Total de Citas Registradas</span>
+                        <span class="text-xs text-gray-400 block mb-1">Total Citas Registradas</span>
                         <h4 id="metric-total-bookings" class="text-2xl font-extrabold text-brand-300 font-mono">0</h4>
-                        <span class="text-[10px] text-gray-500 mt-2 block">Reservas activas y pasadas</span>
+                        <span class="text-[10px] text-gray-500 mt-2 block">Reservas en sistema</span>
                     </div>
 
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
-                        <span class="text-xs text-gray-400 block mb-1">Abonos Recibidos ($10k c/u)</span>
+                        <span class="text-xs text-gray-400 block mb-1">Abonos Recibidos</span>
                         <h4 id="metric-total-abonos" class="text-2xl font-extrabold text-amber-400 font-mono">$0 COP</h4>
-                        <span class="text-[10px] text-gray-500 mt-2 block">Recaudado vía Llave 0090984300</span>
+                        <span class="text-[10px] text-gray-500 mt-2 block">Vía Llave 0090984300</span>
                     </div>
 
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
                         <span class="text-xs text-gray-400 block mb-1">Servicio Más Popular</span>
-                        <h4 id="metric-top-service" class="text-lg font-bold text-white truncate">Manicura Semipermanente</h4>
-                        <span class="text-[10px] text-gray-500 mt-2 block">Basado en reservas de la web</span>
+                        <h4 id="metric-top-service" class="text-base font-bold text-white truncate">Manicura Semipermanente</h4>
+                        <span class="text-[10px] text-gray-500 mt-2 block">Basado en agenda</span>
+                    </div>
+
+                    <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
+                        <span class="text-xs text-gray-400 block mb-1">Descuentos Fidelidad</span>
+                        <h4 id="metric-total-loyalty-discounts" class="text-2xl font-extrabold text-purple-400 font-mono">0 citas</h4>
+                        <span class="text-[10px] text-gray-500 mt-2 block">Citas #11 redimidas</span>
+                    </div>
+
+                    <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-md">
+                        <span class="text-xs text-gray-400 block mb-1">Citas con Código Promo</span>
+                        <h4 id="metric-total-promo-codes" class="text-2xl font-extrabold text-yellow-400 font-mono">0 citas</h4>
+                        <span class="text-[10px] text-gray-500 mt-2 block">Con cupones aplicados</span>
                     </div>
                 </div>
 
@@ -1810,6 +1822,62 @@
                         <div class="h-64 relative">
                             <canvas id="chart-monthly-revenue"></canvas>
                         </div>
+                    </div>
+                </div>
+
+                <!-- CONTABILIDAD Y DESGLOSE DE DESCUENTOS Y CÓDIGOS PROMOCIONALES -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+                    <div class="lg:col-span-5 bg-gray-900 p-6 rounded-3xl border border-gray-800 shadow-xl space-y-4">
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-800">
+                            <h4 class="font-serif font-bold text-white text-base flex items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-amber-400"></i>
+                                <span>Distribución de Descuentos (%)</span>
+                            </h4>
+                            <span class="text-[10px] bg-amber-950 text-amber-300 px-2.5 py-0.5 rounded-full font-semibold border border-amber-800">% Otorgados</span>
+                        </div>
+                        <div class="h-60 relative">
+                            <canvas id="chart-discounts-breakdown"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-gray-900 p-6 rounded-3xl border border-gray-800 shadow-xl space-y-4">
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-800">
+                            <h4 class="font-serif font-bold text-white text-base flex items-center gap-2">
+                                <i class="fa-solid fa-calculator text-emerald-400"></i>
+                                <span>Contabilidad & Conteo de Descuentos</span>
+                            </h4>
+                            <span class="text-[10px] bg-emerald-950 text-emerald-300 px-2.5 py-0.5 rounded-full font-semibold border border-emerald-800">Cifras por %</span>
+                        </div>
+
+                        <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1" id="admin-discounts-accounting-list">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-6 rounded-3xl border border-gray-800 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-800">
+                        <h4 class="font-serif font-bold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-list-ol text-purple-400"></i>
+                            <span>Enumeración de Citas con Código Promocional / Descuento</span>
+                        </h4>
+                        <span id="admin-promo-count-badge" class="text-[10px] bg-purple-950 text-purple-300 px-2.5 py-0.5 rounded-full font-bold border border-purple-800">0 Citas Encontradas</span>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-72 overflow-y-auto">
+                        <table class="w-full text-left text-xs text-gray-300">
+                            <thead class="bg-gray-950 text-gray-400 font-bold border-b border-gray-800 uppercase tracking-wider sticky top-0">
+                                <tr>
+                                    <th class="p-3">#</th>
+                                    <th class="p-3">Cliente</th>
+                                    <th class="p-3">Servicio</th>
+                                    <th class="p-3">Código / Descuento Aplicado</th>
+                                    <th class="p-3">Fecha & Hora</th>
+                                    <th class="p-3">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-promo-accounting-table-body" class="divide-y divide-gray-800">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -2317,6 +2385,7 @@
 
         let appointmentsChartInstance = null;
         let revenueChartInstance = null;
+        let discountsChartInstance = null;
 
         function showToast(message, type = 'success') {
             let toast = document.getElementById('custom-toast');
@@ -3095,6 +3164,13 @@
             let totalBookingsCount = allApps.length;
             let serviceCounts = {};
 
+            let loyaltyDiscountsCount = 0;
+            let promoCodesCount = 0;
+            let percentBreakdown = {
+                '10%': 0, '20%': 0, '30%': 0, '40%': 0, '50%': 0, '60%': 0, '66%': 0, '70%': 0, '100%': 0
+            };
+            let promoAppointmentsList = [];
+
             allApps.forEach(app => {
                 let appDate = new Date();
                 if (app.createdAt) {
@@ -3117,6 +3193,42 @@
                 let srvName = app.service ? app.service.split(' ($')[0].trim() : 'Desconocido';
                 srvName = srvName.split(' + ')[0].trim();
                 serviceCounts[srvName] = (serviceCounts[srvName] || 0) + 1;
+
+                // Análisis y Contabilidad de Descuentos & Códigos Promocionales
+                let hasLoyalty = false;
+                let hasPromo = false;
+                let pctFound = null;
+
+                if (app.promoCode) {
+                    hasPromo = true;
+                }
+
+                const searchContent = `${app.service || ''} ${app.notes || ''}`;
+                const pctMatch = searchContent.match(/(\d+)\s*%/);
+                if (pctMatch) {
+                    const pctVal = `${pctMatch[1]}%`;
+                    pctFound = pctVal;
+                    hasLoyalty = true;
+                    if (percentBreakdown[pctVal] !== undefined) {
+                        percentBreakdown[pctVal]++;
+                    } else {
+                        percentBreakdown[pctVal] = 1;
+                    }
+                }
+
+                if (searchContent.toLowerCase().includes('promo') || searchContent.toLowerCase().includes('val10') || searchContent.toLowerCase().includes('cupón')) {
+                    hasPromo = true;
+                }
+
+                if (hasLoyalty) loyaltyDiscountsCount++;
+                if (hasPromo) promoCodesCount++;
+
+                if (hasLoyalty || hasPromo) {
+                    promoAppointmentsList.push({
+                        app: app,
+                        discountLabel: pctFound || (app.promoCode ? `Promo: ${app.promoCode}` : 'Descuento Especial')
+                    });
+                }
             });
 
             let topService = "Aún sin datos";
@@ -3133,8 +3245,15 @@
             document.getElementById('metric-total-abonos').textContent = `$${(totalBookingsCount * 10000).toLocaleString('es-CO')} COP`;
             document.getElementById('metric-top-service').textContent = topService;
 
+            const loyaltyMetric = document.getElementById('metric-total-loyalty-discounts');
+            if (loyaltyMetric) loyaltyMetric.textContent = `${loyaltyDiscountsCount} citas`;
+
+            const promoMetric = document.getElementById('metric-total-promo-codes');
+            if (promoMetric) promoMetric.textContent = `${promoCodesCount} citas`;
+
             if (appointmentsChartInstance) appointmentsChartInstance.destroy();
             if (revenueChartInstance) revenueChartInstance.destroy();
+            if (discountsChartInstance) discountsChartInstance.destroy();
 
             const ctx1 = document.getElementById('chart-appointments-movement')?.getContext('2d');
             if (ctx1) {
@@ -3204,6 +3323,110 @@
                         }
                     }
                 });
+            }
+
+            // 3. Gráfica de Dona para Distribución de Descuentos (%)
+            const ctx3 = document.getElementById('chart-discounts-breakdown')?.getContext('2d');
+            if (ctx3) {
+                const labels = Object.keys(percentBreakdown).filter(k => percentBreakdown[k] > 0);
+                const dataValues = labels.map(k => percentBreakdown[k]);
+                const chartColors = ['#f59e0b', '#ec4899', '#8b5cf6', '#10b981', '#3b82f6', '#ef4444', '#6366f1', '#14b8a6', '#eab308'];
+
+                discountsChartInstance = new Chart(ctx3, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels.length > 0 ? labels : ['Sin Descuentos Aplicados'],
+                        datasets: [{
+                            data: dataValues.length > 0 ? dataValues : [1],
+                            backgroundColor: labels.length > 0 ? chartColors.slice(0, labels.length) : ['#374151'],
+                            borderWidth: 2,
+                            borderColor: '#111827'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#d1d5db', font: { size: 10 } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 4. Contabilidad en lista por Porcentaje
+            const accountingContainer = document.getElementById('admin-discounts-accounting-list');
+            if (accountingContainer) {
+                accountingContainer.innerHTML = '';
+                let itemsCount = 0;
+                Object.entries(percentBreakdown).forEach(([pct, count]) => {
+                    if (count > 0) {
+                        itemsCount += count;
+                        const item = document.createElement('div');
+                        item.className = 'bg-gray-950 p-3 rounded-2xl border border-gray-800 flex justify-between items-center text-xs';
+                        item.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-amber-400 flex items-center justify-center text-[9px] text-gray-950 font-bold">✓</span>
+                                <span class="font-bold text-white">Descuento del ${pct}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-extrabold text-amber-300 font-mono text-sm block">${count} ${count === 1 ? 'clienta' : 'clientas'}</span>
+                                <span class="text-[10px] text-gray-400">Beneficio concedido en cita</span>
+                            </div>
+                        `;
+                        accountingContainer.appendChild(item);
+                    }
+                });
+
+                if (itemsCount === 0) {
+                    accountingContainer.innerHTML = `<p class="text-xs text-gray-500 italic text-center py-6">Aún no hay registros de citas con descuentos aplicados (10%, 20%, 30%, 66%, etc.).</p>`;
+                }
+            }
+
+            // 5. Enumeración de Citas con Código Promocional / Fidelidad
+            const promoTableBody = document.getElementById('admin-promo-accounting-table-body');
+            const promoCountBadge = document.getElementById('admin-promo-count-badge');
+            if (promoCountBadge) promoCountBadge.textContent = `${promoAppointmentsList.length} ${promoAppointmentsList.length === 1 ? 'Cita Registrada' : 'Citas Registradas'}`;
+
+            if (promoTableBody) {
+                promoTableBody.innerHTML = '';
+                if (promoAppointmentsList.length === 0) {
+                    promoTableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-500 italic">No se han registrado citas reservadas con código promocional o cupón de fidelidad.</td></tr>`;
+                } else {
+                    promoAppointmentsList.forEach((item, index) => {
+                        const app = item.app;
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-gray-950/60 transition-colors border-b border-gray-800/60';
+                        
+                        const statusBadge = app.status === 'completada' 
+                            ? `<span class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 font-bold text-[10px]">Completada</span>`
+                            : (app.status === 'cancelada' 
+                                ? `<span class="bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded border border-rose-500/30 font-bold text-[10px]">Cancelada</span>`
+                                : `<span class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30 font-bold text-[10px]">Confirmada</span>`);
+
+                        tr.innerHTML = `
+                            <td class="p-3 font-mono font-extrabold text-amber-400">#${index + 1}</td>
+                            <td class="p-3">
+                                <span class="font-bold text-white block">${escapeHtml(app.name || 'Cliente')}</span>
+                                <span class="text-[10px] text-gray-400 font-mono">${escapeHtml(app.phone || '')}</span>
+                            </td>
+                            <td class="p-3 font-semibold text-gray-300">${escapeHtml(app.service || 'Servicio')}</td>
+                            <td class="p-3">
+                                <span class="inline-flex items-center gap-1 bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                                    <i class="fa-solid fa-ticket text-amber-400"></i> ${escapeHtml(app.promoCode || item.discountLabel)}
+                                </span>
+                            </td>
+                            <td class="p-3">
+                                <span class="block font-bold text-gray-200">${escapeHtml(app.dateKey || '')}</span>
+                                <span class="text-[10px] text-gray-400">${escapeHtml(app.time || '')}</span>
+                            </td>
+                            <td class="p-3">${statusBadge}</td>
+                        `;
+                        promoTableBody.appendChild(tr);
+                    });
+                }
             }
         };
 
