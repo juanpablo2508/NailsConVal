@@ -2916,6 +2916,26 @@
             showToast(`Turno ${timeSlot} en ${dateStr} actualizado.`);
         };
 
+        function getAppointmentDateObject(app) {
+            if (!app) return new Date();
+            if (app.appointmentDateIso) {
+                const d = new Date(app.appointmentDateIso + 'T00:00:00');
+                if (!isNaN(d.getTime())) return d;
+            }
+            if (app.dateKey) {
+                let d = new Date(app.dateKey);
+                if (!isNaN(d.getTime())) return d;
+                let cleanKey = app.dateKey.replace(/^[A-Za-z]+\s+/, '');
+                d = new Date(cleanKey);
+                if (!isNaN(d.getTime())) return d;
+            }
+            if (app.createdAt) {
+                let d = new Date(app.createdAt);
+                if (!isNaN(d.getTime())) return d;
+            }
+            return new Date();
+        }
+
         window.renderAdminCharts = function() {
             const allApps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
             const periodSelect = document.getElementById('admin-financial-period-select');
@@ -2927,12 +2947,7 @@
 
             const filteredApps = allApps.filter(app => {
                 if (periodVal === 'all') return true;
-                let d = new Date();
-                if (app.dateKey) {
-                    d = new Date(app.dateKey + 'T00:00:00');
-                } else if (app.createdAt) {
-                    d = new Date(app.createdAt);
-                }
+                const d = getAppointmentDateObject(app);
                 const appYear = d.getFullYear();
                 const appMonth = d.getMonth();
 
@@ -2969,20 +2984,20 @@
             let promoAppointmentsList = [];
 
             filteredApps.forEach(app => {
-                let appDate = new Date();
-                if (app.dateKey) {
-                    appDate = new Date(app.dateKey + 'T00:00:00');
-                } else if (app.createdAt) {
-                    appDate = new Date(app.createdAt);
-                }
+                const appDate = getAppointmentDateObject(app);
                 const monthIndex = appDate.getMonth();
-                appointmentsByMonth[monthIndex] += 1;
+                if (!isNaN(monthIndex) && monthIndex >= 0 && monthIndex < 12) {
+                    appointmentsByMonth[monthIndex] += 1;
+                }
 
                 let price = 0;
                 if (app.service) {
                     const match = app.service.match(/\$([\d.]+)\s*COP/);
                     if (match) {
                         price = parseInt(match[1].replace(/\./g, ''), 10);
+                    } else {
+                        const sFound = (window.SERVICES_DATA || []).find(s => app.service.toLowerCase().includes(s.name.toLowerCase()));
+                        if (sFound) price = sFound.price;
                     }
                 }
 
