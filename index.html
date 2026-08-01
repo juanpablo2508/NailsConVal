@@ -2880,24 +2880,60 @@
 
         window.renderAdminCharts = function() {
             const allApps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
+            const periodSelect = document.getElementById('admin-financial-period-select');
+            const periodVal = periodSelect ? periodSelect.value : 'all';
+
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+
+            const filteredApps = allApps.filter(app => {
+                if (periodVal === 'all') return true;
+                let d = new Date();
+                if (app.dateKey) {
+                    d = new Date(app.dateKey + 'T00:00:00');
+                } else if (app.createdAt) {
+                    d = new Date(app.createdAt);
+                }
+                const appYear = d.getFullYear();
+                const appMonth = d.getMonth();
+
+                if (periodVal === 'this_month') {
+                    return appYear === currentYear && appMonth === currentMonth;
+                }
+                if (periodVal === 'last_month') {
+                    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                    const lastMonthIndex = currentMonth === 0 ? 11 : currentMonth - 1;
+                    return appYear === lastMonthYear && appMonth === lastMonthIndex;
+                }
+                return true;
+            });
+
             const monthsLabels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
             
             let appointmentsByMonth = new Array(12).fill(0);
             let revenueByMonth = new Array(12).fill(0);
-            let totalIncomeSum = 0;
-            let totalBookingsCount = allApps.length;
-            let serviceCounts = {};
+
+            let realCompletedSum = 0;
+            let pendingSum = 0;
+            let totalDiscountsGiven = 0;
+
+            let nonCanceledCount = 0;
+            let refundsDeductedCount = 0;
 
             let loyaltyDiscountsCount = 0;
             let promoCodesCount = 0;
+
             let percentBreakdown = {
                 '10%': 0, '20%': 0, '30%': 0, '40%': 0, '50%': 0, '60%': 0, '66%': 0, '70%': 0, '100%': 0
             };
             let promoAppointmentsList = [];
 
-            allApps.forEach(app => {
+            filteredApps.forEach(app => {
                 let appDate = new Date();
-                if (app.createdAt) {
+                if (app.dateKey) {
+                    appDate = new Date(app.dateKey + 'T00:00:00');
+                } else if (app.createdAt) {
                     appDate = new Date(app.createdAt);
                 }
                 const monthIndex = appDate.getMonth();
@@ -2910,44 +2946,49 @@
                         price = parseInt(match[1].replace(/\./g, ''), 10);
                     }
                 }
-                
-                revenueByMonth[monthIndex] += price;
-                totalIncomeSum += price;
 
-                let srvName = app.service ? app.service.split(' ($')[0].trim() : 'Desconocido';
-                srvName = srvName.split(' + ')[0].trim();
-                serviceCounts[srvName] = (serviceCounts[srvName] || 0) + 1;
+                if (app.status === 'cancelada') {
+                    if (app.refundEligible) refundsDeductedCount++;
+                } else {
+                    nonCanceledCount++;
+                    revenueByMonth[monthIndex] += price;
 
-                // Análisis y Contabilidad de Descuentos & Códigos Promocionales
-                let hasLoyalty = false;
-                let hasPromo = false;
-                let pctFound = null;
-
-                if (app.promoCode) {
-                    hasPromo = true;
+                    if (app.status === 'completada') {
+                        realCompletedSum += price;
+                    } else {
+                        pendingSum += price;
+                    }
                 }
 
                 const searchContent = `${app.service || ''} ${app.notes || ''}`;
                 const pctMatch = searchContent.match(/(\d+)\s*%/);
+                let pctFound = null;
+
                 if (pctMatch) {
                     const pctVal = `${pctMatch[1]}%`;
                     pctFound = pctVal;
-                    hasLoyalty = true;
+                    loyaltyDiscountsCount++;
                     if (percentBreakdown[pctVal] !== undefined) {
                         percentBreakdown[pctVal]++;
                     } else {
                         percentBreakdown[pctVal] = 1;
                     }
+
+                    const pctNum = parseInt(pctMatch[1], 10);
+                    if (price > 0) {
+                        const originalPrice = price / (1 - (pctNum / 100));
+                        totalDiscountsGiven += (originalPrice - price);
+                    }
                 }
 
-                if (searchContent.toLowerCase().includes('promo') || searchContent.toLowerCase().includes('val10') || searchContent.toLowerCase().includes('cupón')) {
-                    hasPromo = true;
+                if (app.promoCode || searchContent.toLowerCase().includes('promo') || searchContent.toLowerCase().includes('val10') || searchContent.toLowerCase().includes('cupón')) {
+                    promoCodesCount++;
+                    if (!pctFound) {
+                        totalDiscountsGiven += 5000;
+                    }
                 }
 
-                if (hasLoyalty) loyaltyDiscountsCount++;
-                if (hasPromo) promoCodesCount++;
-
-                if (hasLoyalty || hasPromo) {
+                if (pctFound || app.promoCode) {
                     promoAppointmentsList.push({
                         app: app,
                         discountLabel: pctFound || (app.promoCode ? `Promo: ${app.promoCode}` : 'Descuento Especial')
@@ -2955,132 +2996,139 @@
                 }
             });
 
-            let topService = "Aún sin datos";
-            let maxCount = 0;
-            for (let [srv, count] of Object.entries(serviceCounts)) {
-                if (count > maxCount) {
-                    maxCount = count;
-                    topService = srv;
+            // Si aún no se han marcado citas como 'completada', asumimos que el total no cancelado es realCompletedSum
+            const hasCompletedFlag = filteredApps.some(a => a.status === 'completada');
+            if (!hasCompletedFlag) {
+                realCompletedSum = pendingSum;
+                pendingSum = 0;
+            }
+
+            const netAbonosSum = Math.max(0, nonCanceledCount * 10000);
+
+            const elReal = document.getElementById('metric-total-income');
+            if (elReal) elReal.textContent = `$${realCompletedSum.toLocaleString('es-CO')} COP`;
+
+            const elPending = document.getElementById('metric-pending-income');
+            if (elPending) elPending.textContent = `$${pendingSum.toLocaleString('es-CO')} COP`;
+
+            const elAbonos = document.getElementById('metric-total-abonos');
+            if (elAbonos) elAbonos.textContent = `$${netAbonosSum.toLocaleString('es-CO')} COP`;
+
+            const elDiscounts = document.getElementById('metric-total-discounts-given');
+            if (elDiscounts) elDiscounts.textContent = `$${Math.round(totalDiscountsGiven).toLocaleString('es-CO')} COP`;
+
+            const elLoyalty = document.getElementById('metric-total-loyalty-discounts');
+            if (elLoyalty) elLoyalty.textContent = `${loyaltyDiscountsCount} citas`;
+
+            const elPromo = document.getElementById('metric-total-promo-codes');
+            if (elPromo) elPromo.textContent = `${promoCodesCount} citas`;
+
+            setTimeout(() => {
+                if (appointmentsChartInstance) appointmentsChartInstance.destroy();
+                if (revenueChartInstance) revenueChartInstance.destroy();
+                if (discountsChartInstance) discountsChartInstance.destroy();
+
+                const ctx1 = document.getElementById('chart-appointments-movement')?.getContext('2d');
+                if (ctx1) {
+                    appointmentsChartInstance = new Chart(ctx1, {
+                        type: 'line',
+                        data: {
+                            labels: monthsLabels,
+                            datasets: [{
+                                label: 'Citas Reservadas',
+                                data: appointmentsByMonth,
+                                borderColor: '#c084fc',
+                                backgroundColor: 'rgba(192, 132, 252, 0.15)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 3,
+                                pointBackgroundColor: '#a855f7',
+                                pointRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+                                y: { 
+                                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                                    ticks: { 
+                                        color: '#9ca3af', 
+                                        font: { size: 10 },
+                                        stepSize: 1,
+                                        beginAtZero: true
+                                    } 
+                                }
+                            }
+                        }
+                    });
                 }
-            }
 
-            document.getElementById('metric-total-income').textContent = `$${totalIncomeSum.toLocaleString('es-CO')} COP`;
-            document.getElementById('metric-total-bookings').textContent = totalBookingsCount;
-            document.getElementById('metric-total-abonos').textContent = `$${(totalBookingsCount * 10000).toLocaleString('es-CO')} COP`;
-            document.getElementById('metric-top-service').textContent = topService;
-
-            const loyaltyMetric = document.getElementById('metric-total-loyalty-discounts');
-            if (loyaltyMetric) loyaltyMetric.textContent = `${loyaltyDiscountsCount} citas`;
-
-            const promoMetric = document.getElementById('metric-total-promo-codes');
-            if (promoMetric) promoMetric.textContent = `${promoCodesCount} citas`;
-
-            if (appointmentsChartInstance) appointmentsChartInstance.destroy();
-            if (revenueChartInstance) revenueChartInstance.destroy();
-            if (discountsChartInstance) discountsChartInstance.destroy();
-
-            const ctx1 = document.getElementById('chart-appointments-movement')?.getContext('2d');
-            if (ctx1) {
-                appointmentsChartInstance = new Chart(ctx1, {
-                    type: 'line',
-                    data: {
-                        labels: monthsLabels,
-                        datasets: [{
-                            label: 'Citas Reservadas',
-                            data: appointmentsByMonth,
-                            borderColor: '#c084fc',
-                            backgroundColor: 'rgba(192, 132, 252, 0.15)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointBackgroundColor: '#a855f7',
-                            pointRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
-                            y: { 
-                                grid: { color: 'rgba(255,255,255,0.05)' }, 
-                                ticks: { 
-                                    color: '#9ca3af', 
-                                    font: { size: 10 },
-                                    stepSize: 1,
-                                    beginAtZero: true
-                                } 
+                const ctx2 = document.getElementById('chart-monthly-revenue')?.getContext('2d');
+                if (ctx2) {
+                    revenueChartInstance = new Chart(ctx2, {
+                        type: 'bar',
+                        data: {
+                            labels: monthsLabels,
+                            datasets: [{
+                                label: 'Ingresos ($ COP)',
+                                data: revenueByMonth,
+                                backgroundColor: '#34d399',
+                                borderRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+                                y: { 
+                                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                                    ticks: { 
+                                        color: '#9ca3af', 
+                                        font: { size: 10 },
+                                        callback: (val) => '$' + (val / 1000) + 'k'
+                                    } 
+                                }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            const ctx2 = document.getElementById('chart-monthly-revenue')?.getContext('2d');
-            if (ctx2) {
-                revenueChartInstance = new Chart(ctx2, {
-                    type: 'bar',
-                    data: {
-                        labels: monthsLabels,
-                        datasets: [{
-                            label: 'Ingresos ($ COP)',
-                            data: revenueByMonth,
-                            backgroundColor: '#34d399',
-                            borderRadius: 8
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
-                            y: { 
-                                grid: { color: 'rgba(255,255,255,0.05)' }, 
-                                ticks: { 
-                                    color: '#9ca3af', 
-                                    font: { size: 10 },
-                                    callback: (val) => '$' + (val / 1000) + 'k'
-                                } 
+                const ctx3 = document.getElementById('chart-discounts-breakdown')?.getContext('2d');
+                if (ctx3) {
+                    const labels = Object.keys(percentBreakdown).filter(k => percentBreakdown[k] > 0);
+                    const dataValues = labels.map(k => percentBreakdown[k]);
+                    const chartColors = ['#f59e0b', '#ec4899', '#8b5cf6', '#10b981', '#3b82f6', '#ef4444', '#6366f1', '#14b8a6', '#eab308'];
+
+                    discountsChartInstance = new Chart(ctx3, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels.length > 0 ? labels : ['Sin Descuentos Aplicados'],
+                            datasets: [{
+                                data: dataValues.length > 0 ? dataValues : [1],
+                                backgroundColor: labels.length > 0 ? chartColors.slice(0, labels.length) : ['#374151'],
+                                borderWidth: 2,
+                                borderColor: '#111827'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { color: '#d1d5db', font: { size: 10 } }
+                                }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
+            }, 80);
 
-            // 3. Gráfica de Dona para Distribución de Descuentos (%)
-            const ctx3 = document.getElementById('chart-discounts-breakdown')?.getContext('2d');
-            if (ctx3) {
-                const labels = Object.keys(percentBreakdown).filter(k => percentBreakdown[k] > 0);
-                const dataValues = labels.map(k => percentBreakdown[k]);
-                const chartColors = ['#f59e0b', '#ec4899', '#8b5cf6', '#10b981', '#3b82f6', '#ef4444', '#6366f1', '#14b8a6', '#eab308'];
-
-                discountsChartInstance = new Chart(ctx3, {
-                    type: 'doughnut',
-                    data: {
-                        labels: labels.length > 0 ? labels : ['Sin Descuentos Aplicados'],
-                        datasets: [{
-                            data: dataValues.length > 0 ? dataValues : [1],
-                            backgroundColor: labels.length > 0 ? chartColors.slice(0, labels.length) : ['#374151'],
-                            borderWidth: 2,
-                            borderColor: '#111827'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { color: '#d1d5db', font: { size: 10 } }
-                            }
-                        }
-                    }
-                });
-            }
-
-            // 4. Contabilidad en lista por Porcentaje
             const accountingContainer = document.getElementById('admin-discounts-accounting-list');
             if (accountingContainer) {
                 accountingContainer.innerHTML = '';
@@ -3109,7 +3157,6 @@
                 }
             }
 
-            // 5. Enumeración de Citas con Código Promocional / Fidelidad
             const promoTableBody = document.getElementById('admin-promo-accounting-table-body');
             const promoCountBadge = document.getElementById('admin-promo-count-badge');
             if (promoCountBadge) promoCountBadge.textContent = `${promoAppointmentsList.length} ${promoAppointmentsList.length === 1 ? 'Cita Registrada' : 'Citas Registradas'}`;
@@ -3152,6 +3199,47 @@
                     });
                 }
             }
+        };
+
+        window.exportFinancialReportCSV = function() {
+            const allApps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
+            
+            let csvContent = "\uFEFF";
+            csvContent += "ID Cita,Cliente,Telefono,Servicio,Fecha Cita,Hora,Valor Servicio,Abono Recibido ($10k),Estado,Descuento / Promo\n";
+
+            allApps.forEach(app => {
+                const id = app.id || '';
+                const name = `"${(app.name || '').replace(/"/g, '""')}"`;
+                const phone = `"${(app.phone || '').replace(/"/g, '""')}"`;
+                const service = `"${(app.service || '').replace(/"/g, '""')}"`;
+                const dateKey = app.dateKey || app.appointmentDateIso || '';
+                const time = app.time || '';
+                
+                let price = 0;
+                if (app.service) {
+                    const match = app.service.match(/\$([\d.]+)\s*COP/);
+                    if (match) price = parseInt(match[1].replace(/\./g, ''), 10);
+                }
+
+                const status = app.status || 'confirmada';
+                const promo = `"${(app.promoCode || app.notes || '').replace(/"/g, '""')}"`;
+
+                csvContent += `${id},${name},${phone},${service},${dateKey},${time},${price},10000,${status},${promo}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Reporte_Financiero_NailsConVal_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("📊 Reporte Contable CSV descargado con éxito.");
+        };
+
+        window.exportBookingsToCSV = function() {
+            window.exportFinancialReportCSV();
         };
 
         window.TICKET_THEME_CLASSES = {
