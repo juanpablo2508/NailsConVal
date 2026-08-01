@@ -1524,6 +1524,44 @@
                     </div>
                 </div>
 
+                <!-- DEDICATED CONTROL DE CANCELACIONES & DEVOLUCIONES SECTION -->
+                <div class="bg-gray-900/90 p-5 rounded-3xl border border-rose-500/30 shadow-xl space-y-4">
+                    <div class="flex flex-wrap justify-between items-center pb-3 border-b border-gray-800 gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-sm">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-serif font-bold text-white text-sm">Control Contable de Cancelaciones & Devoluciones</h4>
+                                <p class="text-[11px] text-gray-400">Auditoría en tiempo real de abonos devueltos vs abonos retenidos por el estudio.</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] bg-rose-500/20 text-rose-300 font-extrabold px-3 py-1 rounded-full border border-rose-500/30">Política de 12 Horas</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-gray-950 p-4 rounded-2xl border border-gray-800">
+                            <span class="text-[11px] text-gray-400 block mb-1">Citas Canceladas Totales</span>
+                            <h5 id="metric-cancelled-count" class="text-xl font-extrabold text-rose-400 font-mono">0 citas</h5>
+                            <span class="text-[10px] text-gray-500 mt-1.5 block flex items-center gap-1">
+                                <i class="fa-solid fa-ban text-rose-500"></i> Registradas en periodo
+                            </span>
+                        </div>
+
+                        <div class="bg-gray-950 p-4 rounded-2xl border border-gray-800">
+                            <span class="text-[11px] text-gray-400 block mb-1">Devoluciones Realizadas (≥12h)</span>
+                            <h5 id="metric-refunded-amount" class="text-xl font-extrabold text-rose-300 font-mono">$0 COP</h5>
+                            <span id="metric-refunded-detail" class="text-[10px] text-rose-400/80 mt-1.5 block">0 abonos devueltos ($10k c/u)</span>
+                        </div>
+
+                        <div class="bg-gray-950 p-4 rounded-2xl border border-gray-800">
+                            <span class="text-[11px] text-gray-400 block mb-1">Abonos Retenidos Estudio (&lt;12h / Pasadas)</span>
+                            <h5 id="metric-retained-amount" class="text-xl font-extrabold text-emerald-400 font-mono">$0 COP</h5>
+                            <span id="metric-retained-detail" class="text-[10px] text-emerald-400/80 mt-1.5 block">0 abonos conservados ($10k c/u)</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-gray-900 p-6 rounded-3xl border border-gray-800 shadow-xl">
                         <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-800">
@@ -3089,6 +3127,21 @@
 
             const elPromo = document.getElementById('metric-total-promo-codes');
             if (elPromo) elPromo.textContent = `${promoCodesCount} citas`;
+
+            const elCancelledCount = document.getElementById('metric-cancelled-count');
+            if (elCancelledCount) elCancelledCount.textContent = `${refundsDeductedCount + retainedAbonosCount} citas`;
+
+            const elRefundedAmount = document.getElementById('metric-refunded-amount');
+            if (elRefundedAmount) elRefundedAmount.textContent = `$${(refundsDeductedCount * 10000).toLocaleString('es-CO')} COP`;
+
+            const elRefundedDetail = document.getElementById('metric-refunded-detail');
+            if (elRefundedDetail) elRefundedDetail.textContent = `${refundsDeductedCount} ${refundsDeductedCount === 1 ? 'abono devuelto' : 'abonos devueltos'} ($10k c/u)`;
+
+            const elRetainedAmount = document.getElementById('metric-retained-amount');
+            if (elRetainedAmount) elRetainedAmount.textContent = `$${(retainedAbonosCount * 10000).toLocaleString('es-CO')} COP`;
+
+            const elRetainedDetail = document.getElementById('metric-retained-detail');
+            if (elRetainedDetail) elRetainedDetail.textContent = `${retainedAbonosCount} ${retainedAbonosCount === 1 ? 'abono conservado' : 'abonos conservados'} ($10k c/u)`;
 
             setTimeout(() => {
                 if (appointmentsChartInstance) appointmentsChartInstance.destroy();
