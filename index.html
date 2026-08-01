@@ -811,6 +811,20 @@
                             </div>
 
                             <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-ticket text-amber-500"></i>
+                                    <span>Código Promocional (Opcional)</span>
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="form-promo-code" placeholder="Ej: VAL10" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white">
+                                    <button type="button" onclick="applyPromoCode()" class="bg-amber-400 hover:bg-amber-500 text-brand-950 font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all shadow-xs cursor-pointer">
+                                        Aplicar
+                                    </button>
+                                </div>
+                                <div id="form-promo-status" class="hidden mt-1.5 text-xs font-bold"></div>
+                            </div>
+
+                            <div>
                                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Imagen de Referencia o Diseño (.jpg, .png)</label>
                                 <div class="flex items-center gap-2">
                                     <input type="file" id="form-image-file" accept="image/*" onchange="handleBookingImageUpload(event)" class="hidden">
@@ -4279,6 +4293,37 @@
             }
         };
 
+        window.appliedPromoCode = null;
+
+        window.applyPromoCode = function() {
+            const input = (document.getElementById('form-promo-code')?.value || '').trim().toUpperCase();
+            const statusEl = document.getElementById('form-promo-status');
+            if (!statusEl) return;
+
+            const activePromo = (window.adminDiscountSettings && window.adminDiscountSettings.promoCode) ? window.adminDiscountSettings.promoCode.trim().toUpperCase() : 'VAL10';
+
+            if (!input) {
+                statusEl.className = 'mt-1.5 text-xs font-bold text-rose-600';
+                statusEl.textContent = 'Por favor ingresa un código promocional.';
+                statusEl.classList.remove('hidden');
+                return;
+            }
+
+            if (input === activePromo) {
+                window.appliedPromoCode = input;
+                statusEl.className = 'mt-1.5 text-xs font-extrabold text-emerald-600 flex items-center gap-1';
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ¡Código ${input} válido y aplicado a tu reserva!`;
+                statusEl.classList.remove('hidden');
+                showToast(`🎉 ¡Código promocional ${input} verificado y aplicado!`);
+            } else {
+                window.appliedPromoCode = null;
+                statusEl.className = 'mt-1.5 text-xs font-bold text-rose-600 flex items-center gap-1';
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Código promocional no válido o expirado.`;
+                statusEl.classList.remove('hidden');
+                showToast("Código promocional no válido.", "error");
+            }
+        };
+
         window.sendWhatsAppBooking = async function() {
             const selectedList = getSelectedServicesList();
             const date = document.getElementById('form-date').value;
@@ -4335,6 +4380,8 @@
             }
 
             const cleanPhone = '573192395653';
+            const promoInfo = window.appliedPromoCode ? `\n🏷️ *Código Promocional Aplicado:* ${window.appliedPromoCode}` : '';
+
             const message = `✨ *NUEVA RESERVA DE CITA NAILSCONVAL* ✨\n\n` +
                 `👤 *Cliente:* ${name}\n` +
                 `📱 *Teléfono:* ${phone}\n` +
@@ -4343,11 +4390,14 @@
                 `📅 *Fecha:* ${date}\n` +
                 `⏰ *Hora:* ${time}\n` +
                 `💳 *Abono de Reserva:* $10.000 COP a la Llave (0090984300)` +
+                promoInfo +
                 imageInfo +
                 (notes ? `\n📝 *Notas:* ${notes}\n` : '\n') +
                 `\nHola Val! Adjunto el comprobante del abono de $10.000 COP a la llave 0090984300` +
                 (bookingAttachedImage ? ` y la foto del diseño (${bookingAttachedImage.fileName})` : '') +
                 ` para confirmar mi cita.`;
+
+            const finalNotes = (window.appliedPromoCode ? `[PROMO: ${window.appliedPromoCode}] ` : '') + notes;
 
             const newAppointment = {
                 dateKey: selectedDateObj ? selectedDateObj.toDateString() : date,
@@ -4355,7 +4405,8 @@
                 name: name,
                 phone: phone,
                 service: servicesSummaryText,
-                notes: notes,
+                notes: finalNotes,
+                promoCode: window.appliedPromoCode || null,
                 status: 'confirmada',
                 createdAt: new Date().toISOString()
             };
