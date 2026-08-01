@@ -3368,12 +3368,25 @@
 
                 const walkInTag = app.isWalkIn ? `<span class="bg-purple-950 text-purple-300 border border-purple-800 text-[9px] px-1.5 py-0.5 rounded ml-1">Presencial</span>` : '';
 
+                let promoBadge = '';
+                if (app.promoCode) {
+                    promoBadge = `<span class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400/20 to-yellow-500/20 text-amber-300 border border-amber-400/40 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full mt-1 shadow-xs"><i class="fa-solid fa-ticket text-amber-400"></i> Promo: ${escapeHtml(app.promoCode)}</span>`;
+                } else if (app.notes && (app.notes.toLowerCase().includes('promo') || app.notes.toLowerCase().includes('cupón') || app.notes.toLowerCase().includes('val10'))) {
+                    const match = app.notes.match(/\[(PROMO|CUPÓN)[^\]]*\]/i);
+                    const label = match ? match[0].replace(/[\[\]]/g, '') : 'Código Promocional';
+                    promoBadge = `<span class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400/20 to-yellow-500/20 text-amber-300 border border-amber-400/40 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full mt-1 shadow-xs"><i class="fa-solid fa-ticket text-amber-400"></i> ${escapeHtml(label)}</span>`;
+                }
+
                 tr.innerHTML = `
                     <td class="p-3">
                         <span class="font-bold text-white block flex items-center">${escapeHtml(app.name || 'Cliente')} ${walkInTag}</span>
                         <span class="text-[10px] text-gray-400 font-mono">${escapeHtml(app.phone || '')}</span>
                     </td>
-                    <td class="p-3 font-semibold text-gray-300">${escapeHtml(app.service || 'Servicios Varios')}</td>
+                    <td class="p-3 font-semibold text-gray-300">
+                        <span class="block">${escapeHtml(app.service || 'Servicios Varios')}</span>
+                        ${promoBadge}
+                        ${app.notes ? `<span class="block text-[11px] text-gray-400 italic mt-1 max-w-xs truncate" title="${escapeHtml(app.notes)}">📝 ${escapeHtml(app.notes)}</span>` : ''}
+                    </td>
                     <td class="p-3">
                         <span class="block font-bold text-amber-300">${escapeHtml(app.dateKey || app.appointmentDateIso || '')}</span>
                         <span class="text-[10px] text-gray-400">${escapeHtml(app.time || '')}</span>
