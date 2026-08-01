@@ -2415,19 +2415,31 @@
 
         function parseAppointmentDateTime(dateKeyStr, timeStr) {
             if (!dateKeyStr) return new Date();
-            let time24 = "09:00";
+
+            let d = new Date(dateKeyStr);
+            if (isNaN(d.getTime())) {
+                d = new Date();
+            }
+
+            let year = d.getFullYear();
+            let month = d.getMonth();
+            let day = d.getDate();
+
+            let hours = 9;
+            let minutes = 0;
+
             if (timeStr) {
                 let match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
                 if (match) {
-                    let h = parseInt(match[1], 10);
-                    let m = parseInt(match[2], 10);
+                    hours = parseInt(match[1], 10);
+                    minutes = parseInt(match[2], 10);
                     let ampm = (match[3] || '').toUpperCase();
-                    if (ampm === 'PM' && h < 12) h += 12;
-                    if (ampm === 'AM' && h === 12) h = 0;
-                    time24 = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                    if (ampm === 'PM' && hours < 12) hours += 12;
+                    if (ampm === 'AM' && hours === 12) hours = 0;
                 }
             }
-            return new Date(`${dateKeyStr}T${time24}:00`);
+
+            return new Date(year, month, day, hours, minutes, 0);
         }
 
         window.requestClientCancellation = function(appId, dateKeyStr, timeStr) {
@@ -2435,29 +2447,37 @@
             const idx = apps.findIndex(a => a.id === appId || (a.dateKey === dateKeyStr && a.time === timeStr));
             
             let hoursDifference = 48;
+            let appDate = new Date();
+            const now = new Date();
+
             try {
-                const appDate = parseAppointmentDateTime(dateKeyStr, timeStr);
-                const now = new Date();
+                appDate = parseAppointmentDateTime(dateKeyStr, timeStr);
                 const diffMs = appDate.getTime() - now.getTime();
                 hoursDifference = diffMs / (1000 * 60 * 60);
             } catch(e){}
 
-            const isRefundEligible = hoursDifference >= 12;
+            const isRefundEligible = hoursDifference >= 12 && appDate > now;
             const refundMessage = isRefundEligible
                 ? "✓ Solicitud realizada con ≥12h de anticipación. Aplica para devolución de abono ($10.000 COP)."
-                : "⚠️ Solicitud realizada con <12h de anticipación. NO aplica para devolución de abono según políticas (abono retenido por el estudio).";
+                : "⚠️ Solicitud fuera de tiempo o posterior a la cita. NO aplica devolución de abono (abono retenido por el estudio).";
 
             if (idx >= 0) {
                 apps[idx].status = 'cancelada';
                 apps[idx].cancellationNoticeHours = Math.round(hoursDifference);
                 apps[idx].refundEligible = isRefundEligible;
+                apps[idx].isRefunded = isRefundEligible;
                 localStorage.setItem('ncv_appointments', JSON.stringify(apps));
             }
 
             if (window.dbInstance && window.firestoreUtils && appId) {
                 try {
                     const { doc, setDoc } = window.firestoreUtils;
-                    setDoc(doc(window.dbInstance, 'appointments', appId), { status: 'cancelada', refundEligible: isRefundEligible, cancellationNoticeHours: Math.round(hoursDifference) }, { merge: true });
+                    setDoc(doc(window.dbInstance, 'appointments', appId), { 
+                        status: 'cancelada', 
+                        refundEligible: isRefundEligible, 
+                        isRefunded: isRefundEligible,
+                        cancellationNoticeHours: Math.round(hoursDifference) 
+                    }, { merge: true });
                 } catch(e){}
             }
 
@@ -2497,10 +2517,10 @@
             container.classList.remove('hidden');
             listEl.innerHTML = '';
             cancelledApps.slice(0, 5).forEach(app => {
-                const isEligible = app.refundEligible !== undefined ? app.refundEligible : ((app.cancellationNoticeHours || 48) >= 12);
+                const isEligible = app.isRefunded !== undefined ? app.isRefunded : (app.refundEligible !== undefined ? app.refundEligible : false);
                 const badge = isEligible
                     ? `<span class="bg-emerald-500/20 text-emerald-300 font-extrabold px-2.5 py-1 rounded-lg border border-emerald-500/30 text-[10px]">DEVOLUCIÓN PERMITIDA (≥12h)</span>`
-                    : `<span class="bg-rose-500/20 text-rose-300 font-extrabold px-2.5 py-1 rounded-lg border border-rose-500/30 text-[10px]">SIN DEVOLUCIÓN (&lt;12h - ABONO RETENIDO)</span>`;
+                    : `<span class="bg-rose-500/20 text-rose-300 font-extrabold px-2.5 py-1 rounded-lg border border-rose-500/30 text-[10px]">SIN DEVOLUCIÓN (&lt;12h O PASADA - ABONO RETENIDO)</span>`;
 
                 const div = document.createElement('div');
                 div.className = 'bg-gray-950 p-3 rounded-xl border border-gray-800 text-xs flex justify-between items-center';
@@ -3449,7 +3469,8 @@
 
                 let abonoDisplay = `<span class="font-bold text-emerald-400 font-mono">${app.paidStatus || 'Abono $10k'}</span>`;
                 if (app.status === 'cancelada') {
-                    if (app.isRefunded) {
+                    const isRefunded = app.isRefunded !== undefined ? app.isRefunded : app.refundEligible;
+                    if (isRefunded) {
                         abonoDisplay = `<span class="font-bold text-rose-400 font-mono text-[11px]"><i class="fa-solid fa-rotate-left"></i> -$10k (Devuelto)</span>`;
                     } else {
                         abonoDisplay = `<span class="font-bold text-amber-300 font-mono text-[11px]"><i class="fa-solid fa-lock"></i> +$10k (Retenido)</span>`;
@@ -3492,6 +3513,62 @@
                 `;
                 tableBody.appendChild(tr);
             });
+        };
+
+        window.changeBookingStatus = function(appId, newStatus) {
+            let apps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
+            const idx = apps.findIndex(a => a.id === appId);
+            
+            if (idx >= 0) {
+                apps[idx].status = newStatus;
+
+                if (newStatus === 'cancelada') {
+                    const dateStr = apps[idx].dateKey || apps[idx].appointmentDateIso;
+                    const timeStr = apps[idx].time;
+                    const appDate = parseAppointmentDateTime(dateStr, timeStr);
+                    const now = new Date();
+                    const diffMs = appDate.getTime() - now.getTime();
+                    const hoursNotice = diffMs / (1000 * 60 * 60);
+
+                    const isEligible = hoursNotice >= 12 && appDate > now;
+                    apps[idx].refundEligible = isEligible;
+                    apps[idx].isRefunded = isEligible;
+                    apps[idx].cancellationNoticeHours = Math.round(hoursNotice);
+
+                    let alerts = JSON.parse(localStorage.getItem('ncv_cancellation_alerts') || '[]');
+                    alerts.unshift({
+                        id: 'alert_' + Date.now(),
+                        appId: appId,
+                        dateKey: dateStr,
+                        time: timeStr,
+                        refundEligible: isEligible,
+                        hoursNotice: Math.round(hoursNotice),
+                        createdAt: new Date().toISOString()
+                    });
+                    localStorage.setItem('ncv_cancellation_alerts', JSON.stringify(alerts));
+                }
+
+                localStorage.setItem('ncv_appointments', JSON.stringify(apps));
+
+                if (window.dbInstance && window.firestoreUtils && appId) {
+                    try {
+                        const { doc, setDoc } = window.firestoreUtils;
+                        setDoc(doc(window.dbInstance, 'appointments', appId), { 
+                            status: newStatus, 
+                            refundEligible: apps[idx].refundEligible, 
+                            isRefunded: apps[idx].isRefunded,
+                            cancellationNoticeHours: apps[idx].cancellationNoticeHours
+                        }, { merge: true });
+                    } catch(e){}
+                }
+
+                showToast(`Cita de ${escapeHtml(apps[idx].name || 'Cliente')} actualizada a: ${newStatus.toUpperCase()}`);
+                renderAdminBookingsTable();
+                renderAdminCharts();
+                renderAdminCancellationAlerts();
+                if (typeof window.renderCalendar === 'function') window.renderCalendar();
+                if (typeof window.renderTimeSlots === 'function') window.renderTimeSlots();
+            }
         };
 
         window.toggleAbonoRefund = function(appId) {
