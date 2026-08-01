@@ -5990,7 +5990,7 @@ Tus funciones principales son:
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        instances: [{ prompt: `luxury professional manicure nail art photoshoot, ${promptText}, high detail 8k` }],
+                        instances: [{ prompt: `extreme close up macro photograph of human fingers and nails only, manicured hand with ${promptText}, highly detailed nail art polish, professional nail salon macro photography, no face, no portrait, 8k ultra detailed` }],
                         parameters: { sampleCount: 1, aspectRatio: "1:1" }
                     })
                 });
@@ -6007,24 +6007,24 @@ Tus funciones principales son:
         };
 
         window.getReliableNailDesignImage = function(userText, extractedPrompt) {
-            const q = ((extractedPrompt || '') + ' ' + (userText || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const raw = ((extractedPrompt || '') + ' ' + (userText || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
             let keywords = [];
-            if (q.includes('rojo') || q.includes('roja') || q.includes('red')) keywords.push('red passion');
-            if (q.includes('blanco') || q.includes('blanca') || q.includes('white')) keywords.push('pure white');
-            if (q.includes('negro') || q.includes('negra') || q.includes('black')) keywords.push('black glossy');
-            if (q.includes('rosa') || q.includes('pink')) keywords.push('soft pink');
-            if (q.includes('dorado') || q.includes('gold')) keywords.push('gold foil');
-            if (q.includes('morado') || q.includes('purple')) keywords.push('purple glam');
-            if (q.includes('francesa') || q.includes('french')) keywords.push('french tip');
-            if (q.includes('mariposa')) keywords.push('butterfly nail art');
-            if (q.includes('flor') || q.includes('flores')) keywords.push('flower nail art');
+            if (raw.includes('rojo') || raw.includes('roja') || raw.includes('red')) keywords.push('red passion glossy polish');
+            if (raw.includes('blanco') || raw.includes('blanca') || raw.includes('white')) keywords.push('pure white nail art');
+            if (raw.includes('negro') || raw.includes('negra') || raw.includes('black')) keywords.push('black glossy polished nails');
+            if (raw.includes('rosa') || raw.includes('pink')) keywords.push('soft pink pastel nails');
+            if (raw.includes('dorado') || raw.includes('gold')) keywords.push('gold foil flakes nail design');
+            if (raw.includes('morado') || raw.includes('purple')) keywords.push('glam purple nails');
+            if (raw.includes('francesa') || raw.includes('french')) keywords.push('french tip manicure');
+            if (raw.includes('mariposa')) keywords.push('butterfly nail art');
+            if (raw.includes('flor') || raw.includes('flores')) keywords.push('flower delicate nail art');
 
-            let promptStr = keywords.join(' ');
-            if (!promptStr) promptStr = 'luxury manicure nail design';
+            let promptStr = keywords.join(', ');
+            if (!promptStr) promptStr = 'gel manicure nail art design';
 
-            const cleanPrompt = encodeURIComponent(`professional luxury manicure nail art ${promptStr} 8k photoshoot photo`);
-            return `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=800&nologo=true`;
+            const cleanPrompt = encodeURIComponent(`extreme macro close up shot of fingers and nails only, manicured hand with ${promptStr}, macro nail photography, no face, no portrait, 8k detail`);
+            return `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random()*90000)+Date.now()}`;
         };
 
         window.getBeautyBackupImage = function(userText) {
