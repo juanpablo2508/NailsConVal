@@ -6046,24 +6046,15 @@ Tus reglas principales de conversación:
                     }
                 }
 
-                if (!aiResponseText) {
-                    aiResponseText = generateSmartLocalNailsAiResponse(userText);
-                }
-
                 window.aiChatHistory.push({ role: 'user', text: userText });
                 window.aiChatHistory.push({ role: 'model', text: aiResponseText });
 
                 const loadingEl = document.getElementById('ai-loading-bubble');
                 if (loadingEl) loadingEl.remove();
 
-                }
-
                 const aiBubble = document.createElement('div');
                 aiBubble.className = 'bg-purple-950/60 border border-purple-500/30 text-purple-100 p-3.5 rounded-2xl rounded-tl-xs max-w-[88%] space-y-1.5 shadow-sm';
-                aiBubble.innerHTML = `
-                    <div class="leading-relaxed prose prose-invert text-xs">${formatMarkdownToHtml(aiResponseText)}</div>
-                    ${imageCardHtml}
-                `;
+                aiBubble.innerHTML = `<div class="leading-relaxed prose prose-invert text-xs">${formatMarkdownToHtml(aiResponseText)}</div>`;
                 messagesContainer.appendChild(aiBubble);
 
             } catch (err) {
@@ -6088,45 +6079,6 @@ Tus reglas principales de conversación:
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 .replace(/\n/g, '<br>');
-        }
-
-        function getBeautyFailoverImage(userText) {
-            const q = (userText || '').toLowerCase();
-            if (q.includes('rojo') || q.includes('roja') || q.includes('red')) {
-                return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=800&auto=format&fit=crop';
-            } else if (q.includes('rosa') || q.includes('pink') || q.includes('pastel')) {
-                return 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=800&auto=format&fit=crop';
-            } else if (q.includes('negro') || q.includes('black') || q.includes('dark')) {
-                return 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop';
-            } else if (q.includes('blanco') || q.includes('white') || q.includes('francesa') || q.includes('french')) {
-                return 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop';
-            } else if (q.includes('dorado') || q.includes('gold') || q.includes('brillo') || q.includes('glitter')) {
-                return 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=800&auto=format&fit=crop';
-            } else if (q.includes('pedicura') || q.includes('pies') || q.includes('spa')) {
-                return 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=800&auto=format&fit=crop';
-            }
-            return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=800&auto=format&fit=crop';
-        }
-
-        function generateSmartLocalNailsAiResponse(query) {
-            const q = query.toLowerCase();
-            const isImg = /(foto|imagen|generar|diseño|diseño|dibuja|muestra|ver|diseña|crea|nail|art|uñas|uñita|uñitas)/i.test(q);
-
-            if (isImg) {
-                return `✨ **¡Propuesta de Diseño de Uñas Exclusiva para ti!**\n\nHe diseñado una propuesta personalizada basada en tu idea ("*${escapeHtml(query)}*"). Este estilo en alta definición resalta la elegancia de tus manos y es perfecto paralucir en tu próxima sesión de manicura o Kapping en **NailsConVal** 💅💖.\n\n¿Te gustaría guardar esta imagen y agendar tu cita en el calendario?`;
-            } else if (q.includes('precio') || q.includes('cuanto') || q.includes('costo') || q.includes('tarifa')) {
-                return "✨ **Precios Oficiales de NailsConVal:**\n\n• **Manicura Tradicional:** $22.000 COP\n• **Manicura Semipermanente:** $45.000 COP\n• **Nivelación Kapping (Uña Natural):** $70.000 COP\n• **Extensión Builder Gel:** $75.000 COP\n• **Soft Gel:** $85.000 COP\n• **Extensión Polygel:** $95.000 COP\n• **Pedicura Spa:** $45.000 COP\n\n¡Puedes agendar tu servicio favorito desde la sección de **Reservas** en esta web!";
-            } else if (q.includes('kapping') || q.includes('nivelacion') || q.includes('nivelación')) {
-                return "💅 **Nivelación uña natural (Kapping):**\n\nEs un tratamiento especializado con gel estructurador ($70.000 COP) que refuerza tus uñas naturales quebradizas, otorgándoles dureza, crecimiento sano y un acabado perfecto impecable. ¡Es una de las técnicas favoritas en NailsConVal!";
-            } else if (q.includes('reserva') || q.includes('agendar') || q.includes('cita') || q.includes('abono')) {
-                return "📅 **¿Cómo agendar tu cita?**\n\n1. Elige los servicios que deseas en la sección **Reservas**.\n2. Selecciona el día y la hora disponible en el calendario.\n3. Realiza el abono de **$10.000 COP** a la Llave Nequi **0090984300**.\n4. Adjunta el comprobante y presiona **Agendar por WhatsApp**.\n\n¡Así de fácil aseguras tu turno con Val!";
-            } else if (q.includes('donde') || q.includes('ubicacion') || q.includes('ubicación') || q.includes('direccion') || q.includes('dirección') || q.includes('tulua') || q.includes('tuluá')) {
-                return "📍 **Ubicación de NailsConVal:**\n\nEstamos ubicadas en **Carrera 40 #29-24, Barrio Panamericano** en Tuluá, Valle del Cauca. Atendemos únicamente con cita previa para brindarte una atención personalizada y exclusiva. ✨";
-            } else if (q.includes('horario') || q.includes('hora') || q.includes('abierto') || q.includes('dias')) {
-                return "⏰ **Horarios de Atención:**\n\n• **Lunes a Sábado:** 8:00 AM - 7:00 PM\n• **Domingos y Festivos:** Con agenda previa previa confirmación.\n\n¡Te esperamos con los brazos abiertos!";
-            } else {
-                return `✨ **Asesoría Personalizada NailsConVal:**\n\nCon respecto a tu consulta ("*${escapeHtml(query)}*"), en **NailsConVal** te brindamos la mejor atención experta en Tuluá 💅. Puedes consultar nuestra carta de servicios, ver la disponibilidad de horarios en el calendario o pedirme que diseñe cualquier idea de uñas para tu próxima cita.💖`;
-            }
         }
 
         window.saveGeminiApiKey = function(event) {
