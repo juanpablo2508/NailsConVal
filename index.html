@@ -2413,22 +2413,39 @@
             });
         };
 
+        function parseAppointmentDateTime(dateKeyStr, timeStr) {
+            if (!dateKeyStr) return new Date();
+            let time24 = "09:00";
+            if (timeStr) {
+                let match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+                if (match) {
+                    let h = parseInt(match[1], 10);
+                    let m = parseInt(match[2], 10);
+                    let ampm = (match[3] || '').toUpperCase();
+                    if (ampm === 'PM' && h < 12) h += 12;
+                    if (ampm === 'AM' && h === 12) h = 0;
+                    time24 = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                }
+            }
+            return new Date(`${dateKeyStr}T${time24}:00`);
+        }
+
         window.requestClientCancellation = function(appId, dateKeyStr, timeStr) {
             let apps = JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
             const idx = apps.findIndex(a => a.id === appId || (a.dateKey === dateKeyStr && a.time === timeStr));
             
             let hoursDifference = 48;
             try {
-                const appDate = new Date(dateKeyStr);
+                const appDate = parseAppointmentDateTime(dateKeyStr, timeStr);
                 const now = new Date();
                 const diffMs = appDate.getTime() - now.getTime();
                 hoursDifference = diffMs / (1000 * 60 * 60);
             } catch(e){}
 
-            const isRefundEligible = hoursDifference >= 24;
+            const isRefundEligible = hoursDifference >= 12;
             const refundMessage = isRefundEligible
-                ? "✓ Solicitud realizada con ≥24h de anticipación. Aplica para devolución de abono ($10.000 COP)."
-                : "⚠️ Solicitud realizada con <24h de anticipación. NO aplica para devolución de abono según políticas.";
+                ? "✓ Solicitud realizada con ≥12h de anticipación. Aplica para devolución de abono ($10.000 COP)."
+                : "⚠️ Solicitud realizada con <12h de anticipación. NO aplica para devolución de abono según políticas (abono retenido por el estudio).";
 
             if (idx >= 0) {
                 apps[idx].status = 'cancelada';
@@ -2440,7 +2457,7 @@
             if (window.dbInstance && window.firestoreUtils && appId) {
                 try {
                     const { doc, setDoc } = window.firestoreUtils;
-                    setDoc(doc(window.dbInstance, 'appointments', appId), { status: 'cancelada', refundEligible: isRefundEligible }, { merge: true });
+                    setDoc(doc(window.dbInstance, 'appointments', appId), { status: 'cancelada', refundEligible: isRefundEligible, cancellationNoticeHours: Math.round(hoursDifference) }, { merge: true });
                 } catch(e){}
             }
 
@@ -2459,6 +2476,7 @@
             searchClientAppointmentsForCancellation();
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
             if (typeof window.renderTimeSlots === 'function') window.renderTimeSlots();
+            if (typeof window.renderAdminCharts === 'function') window.renderAdminCharts();
 
             showToast(`Cita cancelada. ${refundMessage}`);
         };
@@ -2479,10 +2497,10 @@
             container.classList.remove('hidden');
             listEl.innerHTML = '';
             cancelledApps.slice(0, 5).forEach(app => {
-                const isEligible = app.refundEligible !== undefined ? app.refundEligible : ((app.cancellationNoticeHours || 48) >= 24);
+                const isEligible = app.refundEligible !== undefined ? app.refundEligible : ((app.cancellationNoticeHours || 48) >= 12);
                 const badge = isEligible
-                    ? `<span class="bg-emerald-500/20 text-emerald-300 font-extrabold px-2.5 py-1 rounded-lg border border-emerald-500/30 text-[10px]">DEVOLUCIÓN PERMITIDA (≥24h)</span>`
-                    : `<span class="bg-rose-500/20 text-rose-300 font-extrabold px-2.5 py-1 rounded-lg border border-rose-500/30 text-[10px]">SIN DEVOLUCIÓN (&lt;24h)</span>`;
+                    ? `<span class="bg-emerald-500/20 text-emerald-300 font-extrabold px-2.5 py-1 rounded-lg border border-emerald-500/30 text-[10px]">DEVOLUCIÓN PERMITIDA (≥12h)</span>`
+                    : `<span class="bg-rose-500/20 text-rose-300 font-extrabold px-2.5 py-1 rounded-lg border border-rose-500/30 text-[10px]">SIN DEVOLUCIÓN (&lt;12h - ABONO RETENIDO)</span>`;
 
                 const div = document.createElement('div');
                 div.className = 'bg-gray-950 p-3 rounded-xl border border-gray-800 text-xs flex justify-between items-center';
@@ -2920,6 +2938,7 @@
 
             let nonCanceledCount = 0;
             let refundsDeductedCount = 0;
+            let retainedAbonosCount = 0;
 
             let loyaltyDiscountsCount = 0;
             let promoCodesCount = 0;
@@ -2948,7 +2967,12 @@
                 }
 
                 if (app.status === 'cancelada') {
-                    if (app.refundEligible) refundsDeductedCount++;
+                    const isRefundEligible = app.refundEligible !== undefined ? app.refundEligible : ((app.cancellationNoticeHours || 48) >= 12);
+                    if (isRefundEligible) {
+                        refundsDeductedCount++;
+                    } else {
+                        retainedAbonosCount++;
+                    }
                 } else {
                     nonCanceledCount++;
                     revenueByMonth[monthIndex] += price;
@@ -3003,7 +3027,8 @@
                 pendingSum = 0;
             }
 
-            const netAbonosSum = Math.max(0, nonCanceledCount * 10000);
+            // Abonos Recibidos Netos: Citas activas + Abonos retenidos por cancelaciones fuera de tiempo (<12h)
+            const netAbonosSum = (nonCanceledCount + retainedAbonosCount) * 10000;
 
             const elReal = document.getElementById('metric-total-income');
             if (elReal) elReal.textContent = `$${realCompletedSum.toLocaleString('es-CO')} COP`;
@@ -3013,6 +3038,13 @@
 
             const elAbonos = document.getElementById('metric-total-abonos');
             if (elAbonos) elAbonos.textContent = `$${netAbonosSum.toLocaleString('es-CO')} COP`;
+
+            const elAbonosDetail = document.getElementById('metric-abonos-detail');
+            if (elAbonosDetail) {
+                elAbonosDetail.textContent = retainedAbonosCount > 0 
+                    ? `Incluye +$${(retainedAbonosCount * 10000).toLocaleString('es-CO')} COP retenidos (<12h)`
+                    : `Descontando devoluciones permitidas (≥12h)`;
+            }
 
             const elDiscounts = document.getElementById('metric-total-discounts-given');
             if (elDiscounts) elDiscounts.textContent = `$${Math.round(totalDiscountsGiven).toLocaleString('es-CO')} COP`;
