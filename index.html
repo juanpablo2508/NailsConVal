@@ -276,7 +276,7 @@
         </div>
     </section>
 
-    <section class="py-12 bg-gradient-to-r from-brand-900 via-purple-900 to-brand-950 text-white border-y border-brand-700/50">
+    <section id="loyalty-banner-section" class="py-12 bg-gradient-to-r from-brand-900 via-purple-900 to-brand-950 text-white border-y border-brand-700/50 transition-all duration-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 rounded-2xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center shrink-0 font-bold text-2xl shadow-lg">
@@ -1374,7 +1374,7 @@
                 </div>
             </div>
 
-            <div class="bg-gradient-to-br from-brand-950 to-purple-900 text-white p-5 rounded-2xl border border-brand-400/30 mb-6 shadow-xl">
+            <div id="user-profile-loyalty-card" class="bg-gradient-to-br from-brand-950 to-purple-900 text-white p-5 rounded-2xl border border-brand-400/30 mb-6 shadow-xl transition-all duration-500">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
                         <i class="fa-solid fa-crown"></i>
@@ -1388,7 +1388,7 @@
 
                 <div id="loyalty-coupon-unlocked" class="hidden mt-4 pt-4 border-t border-white/15 text-center bg-gradient-to-r from-amber-400/20 to-yellow-500/20 p-3.5 rounded-xl border border-amber-400/40">
                     <span class="bg-amber-400 text-brand-950 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase block w-max mx-auto mb-1">¡Premio Alcanzado!</span>
-                    <h4 class="font-serif font-bold text-white text-sm sm:text-base"><span id="user-profile-coupon-percent">66%</span> de Descuento en Manicura Semipermanente</h4>
+                    <h4 class="font-serif font-bold text-white text-sm sm:text-base"><span id="user-profile-coupon-percent">66%</span> de Descuento en <span id="user-profile-reward-name">Manicura Semipermanente</span></h4>
                     <p class="text-[11px] text-amber-200 mb-3">¡Felicidades! Completaste 10 citas agendadas en la página web.</p>
                     <button onclick="redeemFreeCoupon()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-brand-950 font-extrabold py-2.5 px-4 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -1815,36 +1815,49 @@
                             <div>
                                 <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Porcentaje de Descuento Club Fidelidad (Cita #11)</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="number" id="admin-loyalty-percent-input" min="5" max="100" required value="66" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-lg font-bold text-amber-400 focus:outline-none focus:border-amber-400">
+                                    <input type="number" id="admin-loyalty-percent-input" min="0" max="100" required value="66" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-lg font-bold text-amber-400 focus:outline-none focus:border-amber-400">
                                     <span class="text-lg font-bold text-gray-300">%</span>
                                 </div>
-                                <p class="text-[11px] text-gray-500 mt-1">Aplica automáticamente al llegar a la cita #11.</p>
+                                <p class="text-[11px] text-gray-500 mt-1">Ingresa el valor numérico (% OFF) que se aplicará en la cita #11.</p>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Descripción del Premio / Bono (Cita #11)</label>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Nombre del Premio / Servicio Regalo (Cita #11)</label>
                                 <input type="text" id="admin-loyalty-reward-input" value="Manicura Semipermanente Con Descuento Especial" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-amber-300 font-bold focus:outline-none focus:border-amber-400">
-                                <p class="text-[11px] text-gray-500 mt-1">Texto del premio visible en la tarjeta de fidelización de las clientas.</p>
+                                <p class="text-[11px] text-gray-500 mt-1">Nombre del premio visible en la tarjeta de fidelización de las clientas.</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-2">🎨 Diseño & Color del Ticket de Fidelidad</label>
+                                <select id="admin-ticket-theme-select" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-amber-300 font-bold focus:outline-none focus:border-amber-400 cursor-pointer">
+                                    <option value="purple">💜 Violeta & Morado Glam (Por Defecto)</option>
+                                    <option value="gold">👑 Dorado Real & Oro 24K (Luxury)</option>
+                                    <option value="rose">💖 Rosa Pastel & Magenta (Chic)</option>
+                                    <option value="emerald">🌿 Verde Esmeralda & Menta (Fresh Spa)</option>
+                                    <option value="dark">🖤 Negro Obsidiana & Cromo (Noche)</option>
+                                    <option value="ruby">❤️ Rojo Rubí & Carmesí (Pasión)</option>
+                                </select>
+                                <p class="text-[11px] text-gray-500 mt-1">Cambia instantáneamente la apariencia y colores del ticket en toda la web.</p>
+                            </div>
+
+                            <div>
                                 <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Código Promocional Especial (Opcional)</label>
                                 <input type="text" id="admin-promo-code-input" placeholder="Ej: VAL10" value="VAL10" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-amber-400 uppercase">
                                 <p class="text-[11px] text-gray-500 mt-1">Código de cupón activo para clientes especiales.</p>
                             </div>
+                        </div>
 
-                            <div>
-                                <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Texto del Banner Superior Promocional</label>
-                                <input type="text" id="admin-top-banner-input" value="✨ ¡Agenda tu cita de esta semana y luce unas uñas impecables! Atendemos con reserva previa." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Texto del Banner Superior Promocional</label>
+                            <input type="text" id="admin-top-banner-input" value="✨ ¡Agenda tu cita de esta semana y luce unas uñas impecables! Atendemos con reserva previa." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400">
                         </div>
 
                         <div class="pt-4 border-t border-gray-800 flex justify-end">
                             <button type="submit" class="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-brand-950 font-extrabold px-8 py-3.5 rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-floppy-disk"></i>
-                                <span>Guardar Cambios de Descuentos & Premio</span>
+                                <span>Guardar Cambios de Descuentos, Premio & Tema</span>
                             </button>
                         </div>
                     </form>
@@ -3164,26 +3177,108 @@
             }
         };
 
+        window.TICKET_THEME_CLASSES = {
+            purple: {
+                banner: "py-12 bg-gradient-to-r from-brand-950 via-purple-900 to-brand-900 text-white border-y border-brand-700/50 transition-all duration-500",
+                card: "bg-gradient-to-br from-brand-950 via-purple-900 to-brand-900 text-white p-5 rounded-2xl border border-brand-400/30 mb-6 shadow-xl transition-all duration-500",
+                stamp: "w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-brand-400 text-white flex items-center justify-center font-bold text-xs shadow-md border-2 border-brand-300"
+            },
+            gold: {
+                banner: "py-12 bg-gradient-to-r from-amber-950 via-yellow-950 to-amber-900 text-white border-y border-amber-500/50 transition-all duration-500",
+                card: "bg-gradient-to-br from-amber-950 via-yellow-950 to-amber-900 text-white p-5 rounded-2xl border border-amber-400/40 mb-6 shadow-xl transition-all duration-500",
+                stamp: "w-9 h-9 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 text-brand-950 flex items-center justify-center font-bold text-xs shadow-md border-2 border-amber-200"
+            },
+            rose: {
+                banner: "py-12 bg-gradient-to-r from-rose-950 via-pink-950 to-rose-900 text-white border-y border-rose-500/50 transition-all duration-500",
+                card: "bg-gradient-to-br from-rose-950 via-pink-950 to-rose-900 text-white p-5 rounded-2xl border border-rose-400/40 mb-6 shadow-xl transition-all duration-500",
+                stamp: "w-9 h-9 rounded-full bg-gradient-to-tr from-rose-500 to-pink-400 text-white flex items-center justify-center font-bold text-xs shadow-md border-2 border-pink-200"
+            },
+            emerald: {
+                banner: "py-12 bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 text-white border-y border-emerald-500/50 transition-all duration-500",
+                card: "bg-gradient-to-br from-emerald-950 via-teal-950 to-emerald-900 text-white p-5 rounded-2xl border border-emerald-400/40 mb-6 shadow-xl transition-all duration-500",
+                stamp: "w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center font-bold text-xs shadow-md border-2 border-teal-200"
+            },
+            dark: {
+                banner: "py-12 bg-gradient-to-r from-gray-950 via-slate-900 to-black text-white border-y border-gray-700/50 transition-all duration-500",
+                card: "bg-gradient-to-br from-gray-950 via-slate-900 to-black text-white p-5 rounded-2xl border border-gray-600/40 mb-6 shadow-xl transition-all duration-500",
+                stamp: "w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-300"
+            },
+            ruby: {
+                banner: "py-12 bg-gradient-to-r from-red-950 via-rose-950 to-red-900 text-white border-y border-red-500/50 transition-all duration-500",
+                card: "bg-gradient-to-br from-red-950 via-rose-950 to-red-900 text-white p-5 rounded-2xl border border-red-400/40 mb-6 shadow-xl transition-all duration-500",
+                stamp: "w-9 h-9 rounded-full bg-gradient-to-tr from-red-600 to-rose-400 text-white flex items-center justify-center font-bold text-xs shadow-md border-2 border-rose-200"
+            }
+        };
+
+        window.applyTicketTheme = function(themeKey) {
+            const key = themeKey || 'purple';
+            const config = window.TICKET_THEME_CLASSES[key] || window.TICKET_THEME_CLASSES.purple;
+            
+            const bannerSec = document.getElementById('loyalty-banner-section');
+            if (bannerSec) bannerSec.className = config.banner;
+
+            const cardEl = document.getElementById('user-profile-loyalty-card');
+            if (cardEl) cardEl.className = config.card;
+        };
+
+        window.updateDiscountUIElements = function() {
+            if (!window.adminDiscountSettings) return;
+            const settings = window.adminDiscountSettings;
+            const percent = settings.loyaltyPercent !== undefined ? settings.loyaltyPercent : 66;
+            const rewardText = settings.rewardText || "Manicura Semipermanente Con Descuento Especial";
+            const topBannerText = settings.topBannerText || "✨ ¡Agenda tu cita de esta semana y luce unas uñas impecables! Atendemos con reserva previa.";
+            const ticketTheme = settings.ticketTheme || "purple";
+
+            const bannerEl = document.getElementById('top-announcement-text');
+            if (bannerEl && topBannerText) bannerEl.textContent = topBannerText;
+
+            const loyaltyTitle = document.getElementById('loyalty-banner-title');
+            if (loyaltyTitle) loyaltyTitle.textContent = `¡Tu Cita #11: ${rewardText} (${percent}% OFF)!`;
+
+            const couponPercentSpan = document.getElementById('user-profile-coupon-percent');
+            if (couponPercentSpan) couponPercentSpan.textContent = `${percent}%`;
+
+            const couponRewardSpan = document.getElementById('user-profile-reward-name');
+            if (couponRewardSpan) couponRewardSpan.textContent = rewardText;
+
+            if (typeof window.applyTicketTheme === 'function') window.applyTicketTheme(ticketTheme);
+            if (typeof window.updateLoyaltyCardUI === 'function') window.updateLoyaltyCardUI();
+        };
+
         function loadDiscountFormValues() {
-            document.getElementById('admin-loyalty-percent-input').value = adminDiscountSettings.loyaltyPercent || 66;
+            const settings = window.adminDiscountSettings || {};
+            const percentInput = document.getElementById('admin-loyalty-percent-input');
+            if (percentInput) percentInput.value = settings.loyaltyPercent !== undefined ? settings.loyaltyPercent : 66;
+            
             const rewardInput = document.getElementById('admin-loyalty-reward-input');
-            if (rewardInput) rewardInput.value = adminDiscountSettings.rewardText || "Manicura Semipermanente Con Descuento Especial";
-            document.getElementById('admin-promo-code-input').value = adminDiscountSettings.promoCode || "VAL10";
-            document.getElementById('admin-top-banner-input').value = adminDiscountSettings.topBannerText || "";
+            if (rewardInput) rewardInput.value = settings.rewardText || "Manicura Semipermanente Con Descuento Especial";
+            
+            const promoInput = document.getElementById('admin-promo-code-input');
+            if (promoInput) promoInput.value = settings.promoCode || "VAL10";
+            
+            const topBannerInput = document.getElementById('admin-top-banner-input');
+            if (topBannerInput) topBannerInput.value = settings.topBannerText || "";
+            
+            const themeSelect = document.getElementById('admin-ticket-theme-select');
+            if (themeSelect) themeSelect.value = settings.ticketTheme || 'purple';
         }
 
         window.saveAdminDiscountSettings = function(event) {
             event.preventDefault();
-            const percent = parseInt(document.getElementById('admin-loyalty-percent-input').value);
+            const percentVal = document.getElementById('admin-loyalty-percent-input').value;
+            const percent = parseInt(percentVal) >= 0 ? parseInt(percentVal) : 66;
             const rewardText = document.getElementById('admin-loyalty-reward-input').value.trim();
             const promo = document.getElementById('admin-promo-code-input').value.trim();
             const banner = document.getElementById('admin-top-banner-input').value.trim();
+            const themeSelect = document.getElementById('admin-ticket-theme-select');
+            const ticketTheme = themeSelect ? themeSelect.value : 'purple';
 
             adminDiscountSettings = {
                 loyaltyPercent: percent,
                 rewardText: rewardText || "Manicura Semipermanente Con Descuento Especial",
                 promoCode: promo,
-                topBannerText: banner
+                topBannerText: banner,
+                ticketTheme: ticketTheme || 'purple'
             };
             window.adminDiscountSettings = adminDiscountSettings;
 
@@ -3195,17 +3290,9 @@
                     setDoc(doc(window.dbInstance, 'settings', 'discount_settings'), adminDiscountSettings, { merge: true });
                 } catch(e){}
             }
-            
-            const bannerEl = document.getElementById('top-announcement-text');
-            if (bannerEl) bannerEl.textContent = banner;
 
-            const loyaltyTitle = document.getElementById('loyalty-banner-title');
-            if (loyaltyTitle) loyaltyTitle.textContent = `¡Tu Cita #11: ${rewardText}!`;
-
-            const couponPercentSpan = document.getElementById('user-profile-coupon-percent');
-            if (couponPercentSpan) couponPercentSpan.textContent = `${percent}%`;
-
-            showToast("✨ Configuración de Descuentos & Premio actualizada.");
+            window.updateDiscountUIElements();
+            showToast(`✨ ¡Premio (${rewardText}), descuento (${percent}%) y diseño de ticket actualizados!`);
         };
 
         window.renderAdminBookingsTable = function() {
@@ -3964,16 +4051,20 @@
             const countText = document.getElementById('loyalty-count-text');
             if (countText) countText.textContent = `${Math.min(count, 10)} / 10 citas`;
 
+            const themeKey = (window.adminDiscountSettings && window.adminDiscountSettings.ticketTheme) || 'purple';
+            const themeConfig = (window.TICKET_THEME_CLASSES && window.TICKET_THEME_CLASSES[themeKey]) || window.TICKET_THEME_CLASSES.purple;
+            const stampClass = themeConfig.stamp;
+
             const stampsContainer = document.getElementById('loyalty-stamps-grid');
             if (stampsContainer) {
                 stampsContainer.innerHTML = '';
                 for (let i = 1; i <= 10; i++) {
                     const stamp = document.createElement('div');
                     if (i <= count) {
-                        stamp.className = 'w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-brand-400 text-white flex items-center justify-center font-bold text-xs shadow-md border-2 border-brand-300';
+                        stamp.className = stampClass;
                         stamp.innerHTML = '<i class="fa-solid fa-sparkles text-[10px]"></i>';
                     } else {
-                        stamp.className = 'w-9 h-9 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center font-bold text-xs border border-gray-200';
+                        stamp.className = 'w-9 h-9 rounded-full bg-gray-100/20 text-gray-300 flex items-center justify-center font-bold text-xs border border-white/20';
                         stamp.textContent = i;
                     }
                     stampsContainer.appendChild(stamp);
