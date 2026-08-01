@@ -5985,28 +5985,33 @@ Tus funciones principales son:
         window.getReliableNailDesignImage = function(userText, extractedPrompt) {
             const q = ((extractedPrompt || '') + ' ' + (userText || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-            if ((q.includes('rojo') || q.includes('roja') || q.includes('red')) && (q.includes('blanco') || q.includes('blanca') || q.includes('white'))) {
-                return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=1000&auto=format&fit=crop';
-            }
-            if (q.includes('rojo') || q.includes('roja') || q.includes('red') || q.includes('carmesi') || q.includes('rubi')) {
-                return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=1000&auto=format&fit=crop';
-            }
-            if (q.includes('negro') || q.includes('negra') || q.includes('black') || q.includes('dark')) {
-                return 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1000&auto=format&fit=crop';
-            }
-            if (q.includes('rosa') || q.includes('rosado') || q.includes('pink') || q.includes('nude') || q.includes('pastel')) {
-                return 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=1000&auto=format&fit=crop';
-            }
-            if (q.includes('blanco') || q.includes('blanca') || q.includes('white') || q.includes('francesa') || q.includes('french')) {
-                return 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1000&auto=format&fit=crop';
-            }
-            if (q.includes('dorado') || q.includes('oro') || q.includes('gold') || q.includes('brillo') || q.includes('glitter')) {
-                return 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=1000&auto=format&fit=crop';
-            }
-            if (q.includes('azul') || q.includes('blue')) {
-                return 'https://images.unsplash.com/photo-1599948019395-60b64d39f75a?w=1000&auto=format&fit=crop';
-            }
-            return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=1000&auto=format&fit=crop';
+            let keywords = [];
+            if (q.includes('rojo') || q.includes('roja') || q.includes('red')) keywords.push('red passion');
+            if (q.includes('blanco') || q.includes('blanca') || q.includes('white')) keywords.push('pure white');
+            if (q.includes('negro') || q.includes('negra') || q.includes('black')) keywords.push('black glossy');
+            if (q.includes('rosa') || q.includes('pink')) keywords.push('soft pink');
+            if (q.includes('dorado') || q.includes('gold')) keywords.push('gold foil');
+            if (q.includes('morado') || q.includes('purple')) keywords.push('purple glam');
+            if (q.includes('francesa') || q.includes('french')) keywords.push('french tip');
+            if (q.includes('mariposa')) keywords.push('butterfly nail art');
+            if (q.includes('flor') || q.includes('flores')) keywords.push('flower nail art');
+
+            let promptStr = keywords.join(' ');
+            if (!promptStr) promptStr = 'luxury manicure nail design';
+
+            const cleanPrompt = encodeURIComponent(`professional luxury manicure nail art ${promptStr} 8k photoshoot photo`);
+            const dynamicUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=800&nologo=true`;
+
+            return dynamicUrl;
+        };
+
+        window.getBeautyBackupImage = function(userText) {
+            const q = (userText || '').toLowerCase();
+            if (q.includes('negro') || q.includes('black')) return 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop';
+            if (q.includes('rosa') || q.includes('pink')) return 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=800&auto=format&fit=crop';
+            if (q.includes('blanco') || q.includes('french')) return 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop';
+            if (q.includes('dorado') || q.includes('gold')) return 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=800&auto=format&fit=crop';
+            return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=800&auto=format&fit=crop';
         };
 
         window.handleAiChatSubmit = async function(event) {
@@ -6112,7 +6117,7 @@ Tus funciones principales son:
                     imageCardHtml = `
                         <div class="space-y-2 mt-2 pt-1 border-t border-purple-500/20">
                             <div class="relative group rounded-2xl overflow-hidden border border-purple-500/40 shadow-lg bg-gray-900 min-h-[200px] flex items-center justify-center">
-                                <img src="${imgUrl}" alt="Diseño de Uñas HD" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl">
+                                <img src="${imgUrl}" alt="Diseño de Uñas HD" onerror="this.onerror=null; this.src=getBeautyBackupImage('${escapeHtml(userText)}');" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl">
                                 <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-400/30 flex items-center gap-1 shadow-sm z-20">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Diseño NailsConVal HD
                                 </div>
