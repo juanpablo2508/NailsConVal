@@ -6009,31 +6009,22 @@ Tus funciones principales son:
         window.getReliableNailDesignImage = function(userText, extractedPrompt) {
             const raw = ((extractedPrompt || '') + ' ' + (userText || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-            let keywords = [];
-            if (raw.includes('rojo') || raw.includes('roja') || raw.includes('red')) keywords.push('red passion glossy polish');
-            if (raw.includes('blanco') || raw.includes('blanca') || raw.includes('white')) keywords.push('pure white nail art');
-            if (raw.includes('negro') || raw.includes('negra') || raw.includes('black')) keywords.push('black glossy polished nails');
-            if (raw.includes('rosa') || raw.includes('pink')) keywords.push('soft pink pastel nails');
-            if (raw.includes('dorado') || raw.includes('gold')) keywords.push('gold foil flakes nail design');
-            if (raw.includes('morado') || raw.includes('purple')) keywords.push('glam purple nails');
-            if (raw.includes('francesa') || raw.includes('french')) keywords.push('french tip manicure');
-            if (raw.includes('mariposa')) keywords.push('butterfly nail art');
-            if (raw.includes('flor') || raw.includes('flores')) keywords.push('flower delicate nail art');
-
-            let promptStr = keywords.join(', ');
-            if (!promptStr) promptStr = 'gel manicure nail art design';
-
-            const cleanPrompt = encodeURIComponent(`extreme macro close up shot of fingers and nails only, manicured hand with ${promptStr}, macro nail photography, no face, no portrait, 8k detail`);
-            return `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random()*90000)+Date.now()}`;
-        };
-
-        window.getBeautyBackupImage = function(userText) {
-            const q = (userText || '').toLowerCase();
-            if (q.includes('negro') || q.includes('black')) return 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop';
-            if (q.includes('rosa') || q.includes('pink')) return 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=800&auto=format&fit=crop';
-            if (q.includes('blanco') || q.includes('french')) return 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop';
-            if (q.includes('dorado') || q.includes('gold')) return 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=800&auto=format&fit=crop';
-            return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=800&auto=format&fit=crop';
+            if (raw.includes('negro') || raw.includes('black') || raw.includes('dark')) {
+                return 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1000&auto=format&fit=crop';
+            }
+            if (raw.includes('rosa') || raw.includes('pink') || raw.includes('pastel') || raw.includes('nude')) {
+                return 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=1000&auto=format&fit=crop';
+            }
+            if (raw.includes('blanco') || raw.includes('white') || raw.includes('francesa') || raw.includes('french')) {
+                return 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1000&auto=format&fit=crop';
+            }
+            if (raw.includes('dorado') || raw.includes('gold') || raw.includes('brillo') || raw.includes('glitter')) {
+                return 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=1000&auto=format&fit=crop';
+            }
+            if (raw.includes('azul') || raw.includes('blue')) {
+                return 'https://images.unsplash.com/photo-1599948019395-60b64d39f75a?w=1000&auto=format&fit=crop';
+            }
+            return 'https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=1000&auto=format&fit=crop';
         };
 
         window.handleAiChatSubmit = async function(event) {
@@ -6145,9 +6136,9 @@ Tus funciones principales son:
                     imageCardHtml = `
                         <div class="space-y-2 mt-2 pt-1 border-t border-purple-500/20">
                             <div class="relative group rounded-2xl overflow-hidden border border-purple-500/40 shadow-lg bg-gray-900 min-h-[200px] flex items-center justify-center">
-                                <img src="${imgUrl}" alt="Diseño de Uñas HD" onerror="this.onerror=null; this.src=getBeautyBackupImage('${escapeHtml(userText)}');" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl">
+                                <img src="${imgUrl}" alt="Diseño de Uñas HD" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1632345031435-8727fec98fbd?w=1000&auto=format&fit=crop';" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl">
                                 <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-400/30 flex items-center gap-1 shadow-sm z-20">
-                                    <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Google AI Imagen 3
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Diseño NailsConVal HD
                                 </div>
                             </div>
                             <div class="flex flex-wrap gap-1.5 pt-1">
