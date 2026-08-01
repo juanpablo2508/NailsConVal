@@ -5982,13 +5982,6 @@ Tus funciones principales son:
             showToast("✨ ¡Foto de diseño generada por IA adjuntada a tu reserva!");
         };
 
-        function generateCleanNailPrompt(userText, extractedPrompt) {
-            const raw = (extractedPrompt || userText || 'luxury manicure nail design').toLowerCase();
-            
-            let promptEn = raw
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                .replace(/negro|negra|negros/gi, 'black')
-                .replace(/rojo|roja|rojos/gi, 'red passion')
         window.getReliableNailDesignImage = function(userText, extractedPrompt) {
             const q = ((extractedPrompt || '') + ' ' + (userText || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
