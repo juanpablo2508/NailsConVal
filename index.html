@@ -3627,20 +3627,6 @@
                     promoBadge = `<span class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400/20 to-yellow-500/20 text-amber-300 border border-amber-400/40 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full mt-1 shadow-xs"><i class="fa-solid fa-ticket text-amber-400"></i> ${escapeHtml(label)}</span>`;
                 }
 
-                tr.innerHTML = `
-                    <td class="p-3">
-                        <span class="font-bold text-white block flex items-center">${escapeHtml(app.name || 'Cliente')} ${walkInTag}</span>
-                        <span class="text-[10px] text-gray-400 font-mono">${escapeHtml(app.phone || '')}</span>
-                    </td>
-                    <td class="p-3 font-semibold text-gray-300">
-                        <span class="block">${escapeHtml(app.service || 'Servicios Varios')}</span>
-                        ${promoBadge}
-                        ${app.notes ? `<span class="block text-[11px] text-gray-400 italic mt-1 max-w-xs truncate" title="${escapeHtml(app.notes)}">📝 ${escapeHtml(app.notes)}</span>` : ''}
-                    </td>
-                    <td class="p-3">
-                        <span class="block font-bold text-amber-300">${escapeHtml(app.dateKey || app.appointmentDateIso || '')}</span>
-                        <span class="text-[10px] text-gray-400">${escapeHtml(app.time || '')}</span>
-                    </td>
                 let abonoDisplay = `<span class="font-bold text-emerald-400 font-mono">${app.paidStatus || 'Abono $10k'}</span>`;
                 if (app.status === 'cancelada') {
                     if (app.isRefunded) {
@@ -5623,6 +5609,181 @@
                 renderReviewsList();
                 showToast("🗑️ Reseña eliminada de la web.");
             }
+        };
+
+        let communityPhotoBase64 = null;
+
+        window.previewCommunityImage = function(event) {
+            const file = event.target.files[0];
+            const nameEl = document.getElementById('comm-photo-filename');
+            const displayNameEl = document.getElementById('comm-photo-display-name');
+            const previewImg = document.getElementById('comm-photo-preview');
+            const container = document.getElementById('comm-preview-container');
+
+            if (!file) return;
+
+            if (nameEl) nameEl.textContent = file.name;
+            if (displayNameEl) displayNameEl.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                communityPhotoBase64 = e.target.result;
+                if (previewImg) previewImg.src = e.target.result;
+                if (container) container.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.removeCommunityImage = function() {
+            communityPhotoBase64 = null;
+            const fileInput = document.getElementById('comm-photo');
+            const nameEl = document.getElementById('comm-photo-filename');
+            const container = document.getElementById('comm-preview-container');
+            if (fileInput) fileInput.value = '';
+            if (nameEl) nameEl.textContent = 'Sin archivo seleccionado';
+            if (container) container.classList.add('hidden');
+        };
+
+        window.submitCommunityPost = function(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('comm-name');
+            const msgInput = document.getElementById('comm-message');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const message = msgInput ? msgInput.value.trim() : '';
+
+            if (!name || !message) {
+                showToast("Por favor ingresa tu nombre y mensaje para publicar.", "error");
+                return;
+            }
+
+            const newPost = {
+                id: 'post_' + Date.now(),
+                name: name,
+                message: message,
+                photoUrl: communityPhotoBase64 || null,
+                likes: 0,
+                createdAt: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+            };
+
+            let posts = JSON.parse(localStorage.getItem('ncv_community_posts') || '[]');
+            posts.unshift(newPost);
+            localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
+
+            if (window.dbInstance && window.firestoreUtils) {
+                try {
+                    const { collection, addDoc } = window.firestoreUtils;
+                    addDoc(collection(window.dbInstance, 'community_posts'), newPost);
+                } catch(e){}
+            }
+
+            const form = document.getElementById('community-post-form');
+            if (form) form.reset();
+            window.removeCommunityImage();
+
+            window.renderCommunityFeed();
+            showToast("💬 ¡Tu publicación ha sido compartida en el Muro de la Comunidad!");
+        };
+
+        window.likeCommunityPost = function(postId) {
+            let posts = JSON.parse(localStorage.getItem('ncv_community_posts') || '[]');
+            const idx = posts.findIndex(p => p.id === postId);
+            if (idx >= 0) {
+                posts[idx].likes = (posts[idx].likes || 0) + 1;
+                localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
+                if (window.dbInstance && window.firestoreUtils && postId) {
+                    try {
+                        const { doc, setDoc } = window.firestoreUtils;
+                        setDoc(doc(window.dbInstance, 'community_posts', postId), { likes: posts[idx].likes }, { merge: true });
+                    } catch(e){}
+                }
+                window.renderCommunityFeed();
+                showToast("❤️ ¡Te ha gustado esta publicación!");
+            }
+        };
+
+        window.renderCommunityFeed = function() {
+            const container = document.getElementById('community-feed-container');
+            if (!container) return;
+
+            let posts = JSON.parse(localStorage.getItem('ncv_community_posts') || 'null');
+            if (!posts || posts.length === 0) {
+                posts = [
+                    {
+                        id: 'seed_post_1',
+                        name: 'ValenNails',
+                        message: '¡Bienvenidas al muro interactivo chicas! Aquí pueden compartir fotos .jpg de los diseños que quieran realizarse o dejar sus comentarios ✨💅',
+                        photoUrl: 'https://i.ibb.co/wZ99L0sF/1.jpg',
+                        likes: 12,
+                        createdAt: 'Publicación oficial'
+                    },
+                    {
+                        id: 'seed_post_2',
+                        name: 'Mariana G.',
+                        message: 'Me encantaron mis uñas en tono pastel de la semana pasada, ¡el terminado con kapping es de otro mundo! Super recomendada Val 💕',
+                        photoUrl: 'https://i.ibb.co/pvVYRKM0/6.jpg',
+                        likes: 8,
+                        createdAt: 'Hace 2 días'
+                    }
+                ];
+                localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
+            }
+
+            container.innerHTML = '';
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-5 rounded-3xl border border-brand-200/80 shadow-md space-y-3';
+                
+                const initials = (post.name || 'Cliente').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+                let photoHtml = '';
+                if (post.photoUrl) {
+                    photoHtml = `
+                        <div class="rounded-2xl overflow-hidden max-h-64 border border-brand-100 shadow-xs">
+                            <img src="${post.photoUrl}" alt="Foto de ${escapeHtml(post.name)}" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-300">
+                        </div>
+                    `;
+                }
+
+                let adminActionsHtml = '';
+                if (window.isAdminAuthenticated) {
+                    adminActionsHtml = `
+                        <div class="pt-2 border-t border-brand-100 flex items-center justify-end gap-2 bg-amber-50/70 p-2 rounded-xl border border-amber-200 mt-2">
+                            <span class="text-[10px] font-bold text-amber-800 uppercase mr-auto">Admin Control</span>
+                            <button onclick="adminEditCommunityPost('${post.id}')" class="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-xs">
+                                <i class="fa-solid fa-pen"></i> Editar
+                            </button>
+                            <button onclick="adminDeleteCommunityPost('${post.id}')" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-xs">
+                                <i class="fa-solid fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-purple-600 text-white font-extrabold text-xs flex items-center justify-center shadow-sm">
+                                ${initials}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-950">${escapeHtml(post.name || 'Cliente')}</h4>
+                                <span class="text-[10px] text-gray-400 font-medium">${escapeHtml(post.createdAt || '')}</span>
+                            </div>
+                        </div>
+                        <button onclick="likeCommunityPost('${post.id}')" class="bg-brand-50 hover:bg-rose-50 text-rose-500 border border-brand-200 px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs">
+                            <i class="fa-solid fa-heart text-rose-500"></i>
+                            <span>${post.likes || 0}</span>
+                        </button>
+                    </div>
+
+                    <p class="text-xs sm:text-sm text-gray-700 leading-relaxed font-medium">${escapeHtml(post.message || '')}</p>
+                    
+                    ${photoHtml}
+                    ${adminActionsHtml}
+                `;
+                container.appendChild(card);
+            });
         };
 
         window.toggleFaq = function(index) {
