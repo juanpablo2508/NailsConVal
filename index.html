@@ -5982,6 +5982,38 @@ Tus funciones principales son:
             showToast("✨ ¡Foto de diseño generada por IA adjuntada a tu reserva!");
         };
 
+        function generateCleanNailPrompt(userText, extractedPrompt) {
+            const raw = (extractedPrompt || userText || 'luxury manicure nail design').toLowerCase();
+            
+            let promptEn = raw
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/negro|negra|negros/gi, 'black')
+                .replace(/rojo|roja|rojos/gi, 'red passion')
+                .replace(/rosa|rosado|rosada/gi, 'soft pink')
+                .replace(/blanco|blanca/gi, 'pure white')
+                .replace(/morado|violeta|púrpura|purpura/gi, 'glam purple')
+                .replace(/verde/gi, 'emerald green')
+                .replace(/azul/gi, 'royal blue')
+                .replace(/dorado|oro/gi, 'gold foil flakes')
+                .replace(/plateado|plata/gi, 'silver chrome')
+                .replace(/pastel/gi, 'pastel palette')
+                .replace(/mariposa|mariposas/gi, 'butterflies nail art')
+                .replace(/flor|flores/gi, 'floral delicate nail art')
+                .replace(/francesa|french/gi, 'french tip manicure')
+                .replace(/kapping|nivelacion|nivelación/gi, 'kapping gel builder structured manicure')
+                .replace(/corta|cortas/gi, 'short natural nails')
+                .replace(/larga|largas/gi, 'long coffin almond nails')
+                .replace(/(quiero|generar|genera|foto|imagen|diseño|diseno|uñas|unas|favor|por|me|gustaria|muestra|dibuja|crea|ver|una|de|con|para)/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            if (!promptEn || promptEn.length < 3) {
+                promptEn = "luxury elegant gel manicure nail art design";
+            }
+
+            return `luxury professional manicure nail art, ${promptEn}, high detail 8k photoshoot, ultra realistic`;
+        }
+
         window.handleAiChatSubmit = async function(event) {
             if (event) event.preventDefault();
             const input = document.getElementById('ai-chat-input');
@@ -6021,7 +6053,7 @@ Tus funciones principales son:
 
             let extraInstructions = '';
             if (isImageRequested) {
-                extraInstructions = `\nEL CLIENTE SOLICITA UNA FOTO/DISEÑO VISUAL DE UÑAS. En tu respuesta en español como Val IA, describe con entusiasmo la propuesta visual y dale consejos de estilo. Al final de tu mensaje, incluye exactamente la etiqueta: [IMAGE_PROMPT: breve descripción en inglés de la manicura profesional en HD].`;
+                extraInstructions = `\nEL CLIENTE SOLICITA UNA FOTO/DISEÑO VISUAL DE UÑAS. Describe entusiasmada la idea propuesta en español como Val IA. Al final de tu mensaje, incluye SIEMPRE la etiqueta: [IMAGE_PROMPT: breve descripción en inglés del diseño solicitado].`;
             }
 
             const fullPrompt = `${NAILSCONVAL_SYSTEM_PROMPT}${extraInstructions}\n\nHISTORIAL RECIENTE:\n${historyFormatted}\n\nCliente dice: ${userText}\n\nResponde como Val IA:`;
@@ -6070,8 +6102,6 @@ Tus funciones principales son:
                 if (matchImg) {
                     imagePromptExtracted = matchImg[1].trim();
                     aiResponseText = aiResponseText.replace(/\[IMAGE_PROMPT:\s*[^\]]+\]/gi, '').trim();
-                } else if (isImageRequested) {
-                    imagePromptExtracted = `luxury professional manicure nail art, ${userText}, ultra realistic 8k photoshoot`;
                 }
 
                 window.aiChatHistory.push({ role: 'user', text: userText });
@@ -6082,9 +6112,10 @@ Tus funciones principales son:
 
                 let imageCardHtml = '';
                 if (isImageRequested || imagePromptExtracted) {
-                    const seed = Date.now();
-                    const cleanPrompt = encodeURIComponent(`professional luxury manicure nail design, ${imagePromptExtracted || userText}, high detail photoshoot 8k`);
-                    const imgUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`;
+                    const seed = Math.floor(Math.random() * 9000000) + Date.now();
+                    const cleanPromptText = generateCleanNailPrompt(userText, imagePromptExtracted);
+                    const encodedPrompt = encodeURIComponent(cleanPromptText);
+                    const imgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`;
 
                     imageCardHtml = `
                         <div class="space-y-2 mt-2 pt-1 border-t border-purple-500/20">
@@ -6093,7 +6124,7 @@ Tus funciones principales son:
                                     <i class="fa-solid fa-wand-magic-sparkles fa-spin text-2xl text-amber-400"></i>
                                     <span class="text-[11px] font-bold text-purple-200">Val IA está generando la foto en HD...</span>
                                 </div>
-                                <img src="${imgUrl}" alt="Diseño de Uñas IA" onload="document.getElementById('img-loader-${seed}')?.remove()" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop'; document.getElementById('img-loader-${seed}')?.remove();" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105">
+                                <img src="${imgUrl}" alt="Diseño de Uñas IA" onload="document.getElementById('img-loader-${seed}')?.remove()" onerror="this.onerror=null; this.src='https://picsum.photos/seed/${seed}/800/800'; document.getElementById('img-loader-${seed}')?.remove();" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105">
                                 <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-400/30 flex items-center gap-1 shadow-sm z-20">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Diseño Generado por IA
                                 </div>
