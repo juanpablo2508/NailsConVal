@@ -5982,6 +5982,30 @@ Tus funciones principales son:
             showToast("✨ ¡Foto de diseño generada por IA adjuntada a tu reserva!");
         };
 
+        window.generateGoogleImagen3Image = async function(apiKey, promptText) {
+            if (!apiKey || !promptText) return null;
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${encodeURIComponent(apiKey.trim())}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        instances: [{ prompt: `luxury professional manicure nail art photoshoot, ${promptText}, high detail 8k` }],
+                        parameters: { sampleCount: 1, aspectRatio: "1:1" }
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+                    if (b64) return `data:image/png;base64,${b64}`;
+                }
+            } catch (e) {
+                console.warn("Imagen 3 Google API error:", e);
+            }
+            return null;
+        };
+
         window.getReliableNailDesignImage = function(userText, extractedPrompt) {
             const q = ((extractedPrompt || '') + ' ' + (userText || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -6000,9 +6024,7 @@ Tus funciones principales son:
             if (!promptStr) promptStr = 'luxury manicure nail design';
 
             const cleanPrompt = encodeURIComponent(`professional luxury manicure nail art ${promptStr} 8k photoshoot photo`);
-            const dynamicUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=800&nologo=true`;
-
-            return dynamicUrl;
+            return `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=800&nologo=true`;
         };
 
         window.getBeautyBackupImage = function(userText) {
@@ -6112,14 +6134,20 @@ Tus funciones principales son:
 
                 let imageCardHtml = '';
                 if (isImageRequested || imagePromptExtracted) {
-                    const imgUrl = window.getReliableNailDesignImage(userText, imagePromptExtracted);
+                    let imgUrl = null;
+                    if (apiKey) {
+                        imgUrl = await window.generateGoogleImagen3Image(apiKey, imagePromptExtracted || userText);
+                    }
+                    if (!imgUrl) {
+                        imgUrl = window.getReliableNailDesignImage(userText, imagePromptExtracted);
+                    }
 
                     imageCardHtml = `
                         <div class="space-y-2 mt-2 pt-1 border-t border-purple-500/20">
                             <div class="relative group rounded-2xl overflow-hidden border border-purple-500/40 shadow-lg bg-gray-900 min-h-[200px] flex items-center justify-center">
                                 <img src="${imgUrl}" alt="Diseño de Uñas HD" onerror="this.onerror=null; this.src=getBeautyBackupImage('${escapeHtml(userText)}');" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl">
                                 <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-400/30 flex items-center gap-1 shadow-sm z-20">
-                                    <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Diseño NailsConVal HD
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Google AI Imagen 3
                                 </div>
                             </div>
                             <div class="flex flex-wrap gap-1.5 pt-1">
@@ -6130,7 +6158,6 @@ Tus funciones principales son:
                                     <i class="fa-solid fa-download"></i> Descargar HD
                                 </a>
                             </div>
-                        </div>
                     `;
                 }
 
