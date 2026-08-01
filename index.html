@@ -6088,9 +6088,13 @@ Tus funciones principales son:
 
                     imageCardHtml = `
                         <div class="space-y-2 mt-2 pt-1 border-t border-purple-500/20">
-                            <div class="relative group rounded-2xl overflow-hidden border border-purple-500/40 shadow-lg">
-                                <img src="${imgUrl}" alt="Diseño de Uñas IA" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105">
-                                <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-400/30 flex items-center gap-1 shadow-sm">
+                            <div class="relative group rounded-2xl overflow-hidden border border-purple-500/40 shadow-lg bg-gray-900 min-h-[200px] flex items-center justify-center">
+                                <div id="img-loader-${seed}" class="absolute inset-0 bg-gray-900/90 flex flex-col items-center justify-center gap-2 text-purple-300 z-10 transition-opacity duration-300">
+                                    <i class="fa-solid fa-wand-magic-sparkles fa-spin text-2xl text-amber-400"></i>
+                                    <span class="text-[11px] font-bold text-purple-200">Val IA está generando la foto en HD...</span>
+                                </div>
+                                <img src="${imgUrl}" alt="Diseño de Uñas IA" onload="document.getElementById('img-loader-${seed}')?.remove()" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop'; document.getElementById('img-loader-${seed}')?.remove();" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105">
+                                <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-400/30 flex items-center gap-1 shadow-sm z-20">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Diseño Generado por IA
                                 </div>
                             </div>
