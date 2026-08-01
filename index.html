@@ -173,7 +173,11 @@
                 </div>
 
                 <div class="lg:hidden flex items-center gap-2">
-                    <button onclick="openUserAuthModal()" id="btn-user-login-mobile-nav" class="bg-brand-100 text-brand-900 p-2.5 rounded-full text-xs font-bold">
+                    <button onclick="openClientCancellationModal()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-3 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer" title="Mis Citas">
+                        <i class="fa-solid fa-calendar-xmark text-amber-700"></i>
+                        <span class="hidden sm:inline">Mis Citas</span>
+                    </button>
+                    <button onclick="openUserAuthModal()" id="btn-user-login-mobile-nav" class="bg-brand-100 text-brand-900 p-2.5 rounded-full text-xs font-bold" title="Mi Cuenta">
                         <i class="fa-regular fa-user text-brand-700 text-base"></i>
                     </button>
                     <button id="mobile-menu-btn" class="text-brand-950 hover:text-brand-600 focus:outline-none p-2">
@@ -186,6 +190,10 @@
         <div id="mobile-menu" class="hidden lg:hidden bg-white/95 backdrop-blur-lg border-b border-brand-100 px-4 pt-2 pb-6 space-y-3 shadow-lg">
             <a href="#inicio" class="mobile-link block px-3 py-2 rounded-lg font-medium text-gray-700 hover:bg-brand-50 hover:text-brand-700">Inicio</a>
             <a href="#servicios" class="mobile-link block px-3 py-2 rounded-lg font-medium text-gray-700 hover:bg-brand-50 hover:text-brand-700">Servicios & Tarifas</a>
+            <button onclick="openClientCancellationModal(); document.getElementById('mobile-menu').classList.add('hidden');" class="mobile-link w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-amber-950 bg-amber-100/90 hover:bg-amber-200 border border-amber-300 flex items-center gap-2.5 shadow-xs cursor-pointer">
+                <i class="fa-solid fa-calendar-xmark text-amber-700 text-base"></i>
+                <span>Mis Citas (Consultar / Cancelar Cita)</span>
+            </button>
             <a href="#estudio-ai" class="mobile-link block px-3 py-2 rounded-lg font-semibold text-brand-700 bg-brand-50 border border-brand-200 flex items-center gap-2">
                 <i class="fa-solid fa-wand-magic-sparkles text-brand-500"></i>
                 <span>Studio AI (Diseñador & Asistente)</span>
@@ -2115,6 +2123,66 @@
                 console.warn("Firestore sync fallback a LocalStorage.");
             });
 
+            // Sincronización en tiempo real de Servicios personalizados (PC <-> Celular)
+            onSnapshot(doc(db, 'settings', 'custom_services'), (docSnap) => {
+                if (docSnap.exists() && docSnap.data().services) {
+                    window.SERVICES_DATA = docSnap.data().services;
+                    localStorage.setItem('ncv_custom_services', JSON.stringify(window.SERVICES_DATA));
+                    if (typeof window.renderPublicServicesGrid === 'function') window.renderPublicServicesGrid();
+                    if (typeof window.renderMultiServicesCheckboxes === 'function') window.renderMultiServicesCheckboxes();
+                    if (typeof window.renderAdminServicesEditor === 'function' && window.isAdminAuthenticated) window.renderAdminServicesEditor();
+                }
+            }, (err) => {});
+
+            // Sincronización en tiempo real de Configuración de Descuentos & Banner
+            onSnapshot(doc(db, 'settings', 'discount_settings'), (docSnap) => {
+                if (docSnap.exists()) {
+                    window.adminDiscountSettings = docSnap.data();
+                    localStorage.setItem('ncv_discount_settings', JSON.stringify(window.adminDiscountSettings));
+                    if (typeof window.updateDiscountUIElements === 'function') window.updateDiscountUIElements();
+                }
+            }, (err) => {});
+
+            // Sincronización en tiempo real de Días y Turnos Bloqueados (Horarios)
+            onSnapshot(doc(db, 'settings', 'schedule_blocks'), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.blockedDates !== undefined) {
+                        localStorage.setItem('ncv_blocked_dates_list', JSON.stringify(data.blockedDates));
+                    }
+                    if (data.blockedSlots !== undefined) {
+                        localStorage.setItem('ncv_blocked_time_slots', JSON.stringify(data.blockedSlots));
+                    }
+                    if (typeof window.renderCalendar === 'function') window.renderCalendar();
+                    if (typeof window.renderTimeSlots === 'function') window.renderTimeSlots();
+                    if (typeof window.renderAdminBlockedDatesList === 'function' && window.isAdminAuthenticated) window.renderAdminBlockedDatesList();
+                    if (typeof window.renderAdminSlotPicker === 'function' && window.isAdminAuthenticated) window.renderAdminSlotPicker();
+                }
+            }, (err) => {});
+
+            // Sincronización en tiempo real de Galería de Portafolio
+            onSnapshot(doc(db, 'settings', 'gallery_items'), (docSnap) => {
+                if (docSnap.exists() && docSnap.data().items) {
+                    window.GALLERY_ITEMS_DATA = docSnap.data().items;
+                    localStorage.setItem('ncv_gallery_items', JSON.stringify(window.GALLERY_ITEMS_DATA));
+                    if (typeof window.renderGalleryPortfolio === 'function') window.renderGalleryPortfolio();
+                    if (typeof window.renderAdminGalleryEditor === 'function' && window.isAdminAuthenticated) window.renderAdminGalleryEditor();
+                }
+            }, (err) => {});
+
+            // Sincronización en tiempo real del Muro de la Comunidad
+            onSnapshot(collection(db, 'community_posts'), (snapshot) => {
+                if (!snapshot.empty) {
+                    const posts = [];
+                    snapshot.forEach((dSnap) => {
+                        posts.push({ id: dSnap.id, ...dSnap.data() });
+                    });
+                    posts.sort((a,b) => (b.id || '').localeCompare(a.id || ''));
+                    localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
+                    if (typeof window.renderCommunityFeed === 'function') window.renderCommunityFeed();
+                }
+            }, (err) => {});
+
         } catch (e) {
             console.warn("Inicialización de Firebase omitida:", e);
         }
@@ -2128,13 +2196,15 @@
 
         window.isAdminAuthenticated = false;
 
-        let adminDiscountSettings = JSON.parse(localStorage.getItem('ncv_discount_settings') || JSON.stringify({
+        window.adminDiscountSettings = JSON.parse(localStorage.getItem('ncv_discount_settings') || JSON.stringify({
             loyaltyPercent: 66,
             promoCode: "VAL10",
-            topBannerText: "✨ ¡Agenda tu cita de esta semana y luce unas uñas impecables! Atendemos con reserva previa."
+            topBannerText: "✨ ¡Agenda tu cita de esta semana y luce unas uñas impecables! Atendemos con reserva previa.",
+            rewardText: "Manicura Semipermanente Con Descuento Especial"
         }));
+        let adminDiscountSettings = window.adminDiscountSettings;
 
-        let SERVICES_DATA = JSON.parse(localStorage.getItem('ncv_custom_services') || JSON.stringify([
+        window.SERVICES_DATA = JSON.parse(localStorage.getItem('ncv_custom_services') || JSON.stringify([
             { id: 'mani_tradi', name: 'Manicura tradicional', price: 22000, durationHours: 1.5, category: 'manicura' },
             { id: 'mani_semi', name: 'Manicura semipermanente', price: 45000, durationHours: 2, category: 'manicura' },
             { id: 'nivel_nat', name: 'Nivelación uña natural', price: 70000, durationHours: 2, category: 'manicura' },
@@ -2148,6 +2218,20 @@
             { id: 'dipping', name: 'Dipping', price: 75000, durationHours: 2, category: 'manicura' },
             { id: 'forrado_nat', name: 'Forrado uña natural con polygel o acrílico', price: 80000, durationHours: 3, category: 'manicura' }
         ]));
+        let SERVICES_DATA = window.SERVICES_DATA;
+
+        window.updateDiscountUIElements = function() {
+            if (!window.adminDiscountSettings) return;
+            const settings = window.adminDiscountSettings;
+            const bannerEl = document.getElementById('top-announcement-text');
+            if (bannerEl && settings.topBannerText) bannerEl.textContent = settings.topBannerText;
+
+            const loyaltyTitle = document.getElementById('loyalty-banner-title');
+            if (loyaltyTitle && settings.rewardText) loyaltyTitle.textContent = `¡Tu Cita #11: ${settings.rewardText}!`;
+
+            const couponPercentSpan = document.getElementById('user-profile-coupon-percent');
+            if (couponPercentSpan && settings.loyaltyPercent) couponPercentSpan.textContent = `${settings.loyaltyPercent}%`;
+        };
 
         let selectedServiceIds = new Set();
         let activeDiscountPercent = 0;
@@ -2581,6 +2665,13 @@
             posts.unshift(newPost);
             localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
 
+            if (window.dbInstance && window.firestoreUtils) {
+                try {
+                    const { collection, addDoc } = window.firestoreUtils;
+                    addDoc(collection(window.dbInstance, 'community_posts'), newPost);
+                } catch(e){}
+            }
+
             document.getElementById('comm-name').value = '';
             document.getElementById('comm-message').value = '';
             removeCommunityImage();
@@ -2808,6 +2899,13 @@
             }
 
             localStorage.setItem('ncv_blocked_dates_list', JSON.stringify(blockedDatesObj));
+            if (window.dbInstance && window.firestoreUtils) {
+                try {
+                    const { doc, setDoc } = window.firestoreUtils;
+                    setDoc(doc(window.dbInstance, 'settings', 'schedule_blocks'), { blockedDates: blockedDatesObj }, { merge: true });
+                } catch(e){}
+            }
+
             renderAdminBlockedDatesList();
             renderCalendar();
             renderTimeSlots();
@@ -2842,6 +2940,13 @@
             let blockedDatesObj = JSON.parse(localStorage.getItem('ncv_blocked_dates_list') || '[]');
             blockedDatesObj = blockedDatesObj.filter(b => b.date !== dateStr);
             localStorage.setItem('ncv_blocked_dates_list', JSON.stringify(blockedDatesObj));
+            if (window.dbInstance && window.firestoreUtils) {
+                try {
+                    const { doc, setDoc } = window.firestoreUtils;
+                    setDoc(doc(window.dbInstance, 'settings', 'schedule_blocks'), { blockedDates: blockedDatesObj }, { merge: true });
+                } catch(e){}
+            }
+
             renderAdminBlockedDatesList();
             renderCalendar();
             renderTimeSlots();
@@ -2889,6 +2994,13 @@
             }
 
             localStorage.setItem('ncv_blocked_time_slots', JSON.stringify(blockedSlotsMap));
+            if (window.dbInstance && window.firestoreUtils) {
+                try {
+                    const { doc, setDoc } = window.firestoreUtils;
+                    setDoc(doc(window.dbInstance, 'settings', 'schedule_blocks'), { blockedSlots: blockedSlotsMap }, { merge: true });
+                } catch(e){}
+            }
+
             renderAdminSlotPicker();
             renderTimeSlots();
             showToast(`Turno ${timeSlot} en ${dateStr} actualizado.`);
@@ -3037,8 +3149,16 @@
                 promoCode: promo,
                 topBannerText: banner
             };
+            window.adminDiscountSettings = adminDiscountSettings;
 
             localStorage.setItem('ncv_discount_settings', JSON.stringify(adminDiscountSettings));
+
+            if (window.dbInstance && window.firestoreUtils) {
+                try {
+                    const { doc, setDoc } = window.firestoreUtils;
+                    setDoc(doc(window.dbInstance, 'settings', 'discount_settings'), adminDiscountSettings, { merge: true });
+                } catch(e){}
+            }
             
             const bannerEl = document.getElementById('top-announcement-text');
             if (bannerEl) bannerEl.textContent = banner;
@@ -3206,7 +3326,15 @@
             if (idx >= 0 && !isNaN(newPrice) && !isNaN(newDuration)) {
                 SERVICES_DATA[idx].price = newPrice;
                 SERVICES_DATA[idx].durationHours = newDuration;
+                window.SERVICES_DATA = SERVICES_DATA;
                 localStorage.setItem('ncv_custom_services', JSON.stringify(SERVICES_DATA));
+
+                if (window.dbInstance && window.firestoreUtils) {
+                    try {
+                        const { doc, setDoc } = window.firestoreUtils;
+                        setDoc(doc(window.dbInstance, 'settings', 'custom_services'), { services: SERVICES_DATA }, { merge: true });
+                    } catch(e){}
+                }
                 
                 renderPublicServicesGrid();
                 renderMultiServicesCheckboxes();
@@ -4045,14 +4173,17 @@
             if (bookingAttachedImage) {
                 imageInfo = `\n🖼️ *Imagen/Diseño Adjunto:* ${bookingAttachedImage.fileName} (${bookingAttachedImage.type === 'ai' ? 'Generado con IA' : 'Archivo .jpg'})\n📌 *Nota:* Te adjunto la foto del diseño/comprobante a continuación en este chat.`;
                 
-                try {
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = bookingAttachedImage.src;
-                    downloadLink.download = bookingAttachedImage.fileName || 'Diseno_NailsConVal.png';
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
-                } catch (e) {}
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (!isMobile) {
+                    try {
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = bookingAttachedImage.src;
+                        downloadLink.download = bookingAttachedImage.fileName || 'Diseno_NailsConVal.png';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                    } catch (e) {}
+                }
             }
 
             const cleanPhone = '573192395653';
@@ -4116,9 +4247,17 @@
             showToast('¡Cita registrada! Redirigiendo a WhatsApp...');
             const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
             
+            const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             setTimeout(() => {
-                window.open(waUrl, '_blank');
-            }, 600);
+                if (isMobileDevice) {
+                    window.location.href = waUrl;
+                } else {
+                    const win = window.open(waUrl, '_blank');
+                    if (!win || win.closed || typeof win.closed === 'undefined') {
+                        window.location.href = waUrl;
+                    }
+                }
+            }, 300);
         };
 
         let currentDate = new Date();
@@ -4589,7 +4728,16 @@
             const item = GALLERY_ITEMS_DATA[index];
             if (confirm(`¿Estás segura de eliminar "${item.title}" de la galería?`)) {
                 GALLERY_ITEMS_DATA.splice(index, 1);
+                window.GALLERY_ITEMS_DATA = GALLERY_ITEMS_DATA;
                 localStorage.setItem('ncv_gallery_items', JSON.stringify(GALLERY_ITEMS_DATA));
+
+                if (window.dbInstance && window.firestoreUtils) {
+                    try {
+                        const { doc, setDoc } = window.firestoreUtils;
+                        setDoc(doc(window.dbInstance, 'settings', 'gallery_items'), { items: GALLERY_ITEMS_DATA }, { merge: true });
+                    } catch(e){}
+                }
+
                 renderGalleryPortfolio();
                 if (typeof renderAdminGalleryEditor === 'function') renderAdminGalleryEditor();
                 showToast("🗑️ Imagen eliminada de la galería.");
@@ -4630,7 +4778,16 @@
                 showToast("📸 ¡Nueva foto agregada exitosamente a la galería!");
             }
 
+            window.GALLERY_ITEMS_DATA = GALLERY_ITEMS_DATA;
             localStorage.setItem('ncv_gallery_items', JSON.stringify(GALLERY_ITEMS_DATA));
+
+            if (window.dbInstance && window.firestoreUtils) {
+                try {
+                    const { doc, setDoc } = window.firestoreUtils;
+                    setDoc(doc(window.dbInstance, 'settings', 'gallery_items'), { items: GALLERY_ITEMS_DATA }, { merge: true });
+                } catch(e){}
+            }
+
             closeAddGalleryModal();
             renderGalleryPortfolio();
             if (typeof renderAdminGalleryEditor === 'function') renderAdminGalleryEditor();
