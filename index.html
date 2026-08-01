@@ -5955,6 +5955,33 @@ Tus funciones principales son:
             }
         };
 
+        window.useAiGeneratedImageForBooking = function(imgSrc, titleText) {
+            const previewImg = document.getElementById('booking-image-preview');
+            const container = document.getElementById('booking-image-preview-container');
+            const fileNameEl = document.getElementById('booking-image-filename');
+            const displayNameEl = document.getElementById('booking-image-display-name');
+            const badgeEl = document.getElementById('booking-image-type-badge');
+
+            const cleanTitle = titleText || 'Diseño_Uñas_IA_NailsConVal.jpg';
+
+            window.bookingAttachedImage = {
+                src: imgSrc,
+                fileName: cleanTitle,
+                type: 'ai'
+            };
+
+            if (previewImg) previewImg.src = imgSrc;
+            if (fileNameEl) fileNameEl.textContent = cleanTitle;
+            if (displayNameEl) displayNameEl.textContent = cleanTitle;
+            if (badgeEl) badgeEl.textContent = '✨ Generado por IA';
+            if (container) container.classList.remove('hidden');
+
+            window.toggleAiAssistantDrawer();
+            const reservasEl = document.getElementById('reservas');
+            if (reservasEl) reservasEl.scrollIntoView({ behavior: 'smooth' });
+            showToast("✨ ¡Foto de diseño generada por IA adjuntada a tu reserva!");
+        };
+
         window.handleAiChatSubmit = async function(event) {
             if (event) event.preventDefault();
             const input = document.getElementById('ai-chat-input');
@@ -5973,13 +6000,15 @@ Tus funciones principales son:
             input.value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
+            const isImageRequested = /(foto|imagen|generar|diseño|diseño|dibuja|muestra|ver|diseña|crea|nail|art|uñas|uñita|uñitas|picture|photo|image|generame|hazme|idea)/i.test(userText);
+
             // Render loading bubble
             const loadingBubble = document.createElement('div');
             loadingBubble.id = 'ai-loading-bubble';
             loadingBubble.className = 'bg-purple-950/60 border border-purple-500/30 text-purple-200 p-3 rounded-2xl rounded-tl-xs max-w-[85%] space-y-1 shadow-sm flex items-center gap-2';
             loadingBubble.innerHTML = `
                 <i class="fa-solid fa-spinner fa-spin text-amber-400"></i>
-                <span class="text-[11px] font-semibold">Val IA está pensando la respuesta...</span>
+                <span class="text-[11px] font-semibold">${isImageRequested ? 'Val IA está diseñando la foto en HD...' : 'Val IA está redactando la respuesta...'}</span>
             `;
             messagesContainer.appendChild(loadingBubble);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -5989,7 +6018,13 @@ Tus funciones principales son:
             const apiKey = localStorage.getItem('ncv_gemini_api_key') || window.geminiApiKey || '';
 
             const historyFormatted = window.aiChatHistory.slice(-6).map(h => `${h.role === 'user' ? 'Cliente' : 'Val IA'}: ${h.text}`).join('\n');
-            const fullPrompt = `${NAILSCONVAL_SYSTEM_PROMPT}\n\nHISTORIAL DE CONVERSACIÓN RECIENTE:\n${historyFormatted}\n\nCliente dice: ${userText}\n\nResponde como Val IA:`;
+
+            let extraInstructions = '';
+            if (isImageRequested) {
+                extraInstructions = `\nEL CLIENTE SOLICITA UNA FOTO/DISEÑO VISUAL DE UÑAS. En tu respuesta en español como Val IA, describe con entusiasmo la propuesta visual y dale consejos de estilo. Al final de tu mensaje, incluye exactamente la etiqueta: [IMAGE_PROMPT: breve descripción en inglés de la manicura profesional en HD].`;
+            }
+
+            const fullPrompt = `${NAILSCONVAL_SYSTEM_PROMPT}${extraInstructions}\n\nHISTORIAL RECIENTE:\n${historyFormatted}\n\nCliente dice: ${userText}\n\nResponde como Val IA:`;
 
             try {
                 let aiResponseText = '';
@@ -6000,18 +6035,32 @@ Tus funciones principales son:
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             contents: [{ parts: [{ text: fullPrompt }] }],
-                            generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
+                            generationConfig: { temperature: 0.75, maxOutputTokens: 700 }
                         })
                     });
 
                     if (response.ok) {
                         const data = await response.json();
-                        aiResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        aiResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    } else {
+                        const errData = await response.json();
+                        console.warn("Error API Gemini:", errData);
+                        aiResponseText = `⚠️ *Nota:* Hubo un error de autenticación con la API Key de Google AI Studio (${errData.error?.message || 'API Key no válida'}). Por favor revisa la clave en tu panel Admin.`;
                     }
                 }
 
                 if (!aiResponseText) {
                     aiResponseText = generateSmartLocalNailsAiResponse(userText);
+                }
+
+                // Extracción de Image Prompt si existe
+                let imagePromptExtracted = null;
+                const matchImg = aiResponseText.match(/\[IMAGE_PROMPT:\s*([^\]]+)\]/i);
+                if (matchImg) {
+                    imagePromptExtracted = matchImg[1].trim();
+                    aiResponseText = aiResponseText.replace(/\[IMAGE_PROMPT:\s*[^\]]+\]/gi, '').trim();
+                } else if (isImageRequested) {
+                    imagePromptExtracted = `luxury professional manicure nail art, ${userText}, ultra realistic 8k photoshoot`;
                 }
 
                 window.aiChatHistory.push({ role: 'user', text: userText });
@@ -6020,12 +6069,42 @@ Tus funciones principales son:
                 const loadingEl = document.getElementById('ai-loading-bubble');
                 if (loadingEl) loadingEl.remove();
 
+                let imageCardHtml = '';
+                if (isImageRequested || imagePromptExtracted) {
+                    const seed = Date.now();
+                    const cleanPrompt = encodeURIComponent(`professional luxury manicure nail design, ${imagePromptExtracted || userText}, high detail photoshoot 8k`);
+                    const imgUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`;
+
+                    imageCardHtml = `
+                        <div class="space-y-2 mt-2 pt-1 border-t border-purple-500/20">
+                            <div class="relative group rounded-2xl overflow-hidden border border-purple-500/40 shadow-lg">
+                                <img src="${imgUrl}" alt="Diseño de Uñas IA" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105">
+                                <div class="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-400/30 flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Diseño Generado por IA
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                <button onclick="useAiGeneratedImageForBooking('${imgUrl}', 'Diseño_Uñas_IA_NailsConVal.jpg')" class="flex-1 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-brand-950 font-extrabold px-3 py-2 rounded-xl text-[10px] flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer">
+                                    <i class="fa-solid fa-calendar-plus"></i> Adjuntar a mi Reserva
+                                </button>
+                                <a href="${imgUrl}" target="_blank" download="Diseño_Uñas_NailsConVal.jpg" class="bg-purple-900 hover:bg-purple-800 text-purple-200 border border-purple-500/40 font-bold px-3 py-2 rounded-xl text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer">
+                                    <i class="fa-solid fa-download"></i> Descargar HD
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+
                 const aiBubble = document.createElement('div');
                 aiBubble.className = 'bg-purple-950/60 border border-purple-500/30 text-purple-100 p-3.5 rounded-2xl rounded-tl-xs max-w-[88%] space-y-1.5 shadow-sm';
-                aiBubble.innerHTML = `<div class="leading-relaxed prose prose-invert text-xs">${formatMarkdownToHtml(aiResponseText)}</div>`;
+                aiBubble.innerHTML = `
+                    <div class="leading-relaxed prose prose-invert text-xs">${formatMarkdownToHtml(aiResponseText)}</div>
+                    ${imageCardHtml}
+                `;
                 messagesContainer.appendChild(aiBubble);
 
             } catch (err) {
+                console.error("Error al procesar IA:", err);
                 const loadingEl = document.getElementById('ai-loading-bubble');
                 if (loadingEl) loadingEl.remove();
 
