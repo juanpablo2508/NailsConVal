@@ -1828,36 +1828,52 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-300 uppercase mb-2">🎨 Diseño & Color del Ticket de Fidelidad</label>
-                                <select id="admin-ticket-theme-select" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-amber-300 font-bold focus:outline-none focus:border-amber-400 cursor-pointer">
-                                    <option value="purple">💜 Violeta & Morado Glam (Por Defecto)</option>
-                                    <option value="gold">👑 Dorado Real & Oro 24K (Luxury)</option>
-                                    <option value="rose">💖 Rosa Pastel & Magenta (Chic)</option>
-                                    <option value="emerald">🌿 Verde Esmeralda & Menta (Fresh Spa)</option>
-                                    <option value="dark">🖤 Negro Obsidiana & Cromo (Noche)</option>
-                                    <option value="ruby">❤️ Rojo Rubí & Carmesí (Pasión)</option>
-                                </select>
-                                <p class="text-[11px] text-gray-500 mt-1">Cambia instantáneamente la apariencia y colores del ticket en toda la web.</p>
+                        <!-- SECCIÓN DESTACADA DE PERSONALIZACIÓN VISUAL DEL TICKET PARA FECHAS ESPECIALES -->
+                        <div class="bg-gradient-to-r from-purple-950/90 via-brand-950 to-purple-950/90 p-5 rounded-2xl border border-purple-500/50 space-y-4 shadow-inner">
+                            <div class="flex items-center gap-2 text-purple-200 font-bold text-sm">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-base animate-pulse"></i>
+                                <span>🎨 Diseño & Color del Ticket para Fechas Especiales</span>
                             </div>
 
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-200 uppercase mb-1.5">Estilo / Color del Ticket</label>
+                                    <select id="admin-ticket-theme-select" class="w-full bg-gray-900 border border-purple-500/60 rounded-xl px-4 py-3 text-sm text-amber-300 font-bold focus:outline-none focus:border-amber-400 cursor-pointer shadow-sm">
+                                        <option value="purple">💜 Violeta & Morado Glam (Por Defecto)</option>
+                                        <option value="gold">👑 Dorado Real & Oro 24K (Aniversario / Luxury)</option>
+                                        <option value="rose">💖 Rosa Pastel & Magenta (Día de la Mujer / Chic)</option>
+                                        <option value="emerald">🌿 Verde Esmeralda & Menta (Fresh Spa)</option>
+                                        <option value="dark">🖤 Negro Obsidiana & Cromo (Black Friday / Noche)</option>
+                                        <option value="ruby">❤️ Rojo Rubí & Carmesí (Navidad / San Valentín)</option>
+                                    </select>
+                                    <p class="text-[11px] text-gray-400 mt-1">Cambia la combinación cromática de la tarjeta en toda la web.</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-200 uppercase mb-1.5">Texto de Insignia Especial (Opcional)</label>
+                                    <input type="text" id="admin-ticket-badge-input" placeholder="Ej: ✨ Edición Especial San Valentín" value="Tarjeta Club Fidelidad" class="w-full bg-gray-900 border border-purple-500/60 rounded-xl px-4 py-3 text-sm text-amber-200 font-semibold focus:outline-none focus:border-amber-400">
+                                    <p class="text-[11px] text-gray-400 mt-1">Texto de la cabecera superior del ticket.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Código Promocional Especial (Opcional)</label>
                                 <input type="text" id="admin-promo-code-input" placeholder="Ej: VAL10" value="VAL10" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-amber-400 uppercase">
                                 <p class="text-[11px] text-gray-500 mt-1">Código de cupón activo para clientes especiales.</p>
                             </div>
-                        </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Texto del Banner Superior Promocional</label>
-                            <input type="text" id="admin-top-banner-input" value="✨ ¡Agenda tu cita de esta semana y luce unas uñas impecables! Atendemos con reserva previa." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Texto del Banner Superior Promocional</label>
+                                <input type="text" id="admin-top-banner-input" value="✨ ¡Agenda tu cita de esta semana y luce unas uñas impecables! Atendemos con reserva previa." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400">
+                            </div>
                         </div>
 
                         <div class="pt-4 border-t border-gray-800 flex justify-end">
                             <button type="submit" class="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-brand-950 font-extrabold px-8 py-3.5 rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-floppy-disk"></i>
-                                <span>Guardar Cambios de Descuentos, Premio & Tema</span>
+                                <span>Guardar Cambios de Descuentos, Premio & Tema Especial</span>
                             </button>
                         </div>
                     </form>
@@ -3252,6 +3268,9 @@
             
             const rewardInput = document.getElementById('admin-loyalty-reward-input');
             if (rewardInput) rewardInput.value = settings.rewardText || "Manicura Semipermanente Con Descuento Especial";
+
+            const badgeInput = document.getElementById('admin-ticket-badge-input');
+            if (badgeInput) badgeInput.value = settings.ticketBadgeText || "Tarjeta Club Fidelidad";
             
             const promoInput = document.getElementById('admin-promo-code-input');
             if (promoInput) promoInput.value = settings.promoCode || "VAL10";
@@ -3268,6 +3287,7 @@
             const percentVal = document.getElementById('admin-loyalty-percent-input').value;
             const percent = parseInt(percentVal) >= 0 ? parseInt(percentVal) : 66;
             const rewardText = document.getElementById('admin-loyalty-reward-input').value.trim();
+            const badgeText = (document.getElementById('admin-ticket-badge-input')?.value || '').trim();
             const promo = document.getElementById('admin-promo-code-input').value.trim();
             const banner = document.getElementById('admin-top-banner-input').value.trim();
             const themeSelect = document.getElementById('admin-ticket-theme-select');
@@ -3276,6 +3296,7 @@
             adminDiscountSettings = {
                 loyaltyPercent: percent,
                 rewardText: rewardText || "Manicura Semipermanente Con Descuento Especial",
+                ticketBadgeText: badgeText || "Tarjeta Club Fidelidad",
                 promoCode: promo,
                 topBannerText: banner,
                 ticketTheme: ticketTheme || 'purple'
@@ -3292,7 +3313,7 @@
             }
 
             window.updateDiscountUIElements();
-            showToast(`✨ ¡Premio (${rewardText}), descuento (${percent}%) y diseño de ticket actualizados!`);
+            showToast(`✨ ¡Premio, porcentaje (${percent}%) y diseño especial de ticket actualizados!`);
         };
 
         window.renderAdminBookingsTable = function() {
