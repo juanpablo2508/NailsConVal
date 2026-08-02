@@ -95,6 +95,67 @@
             cursor: not-allowed !important;
             box-shadow: none !important;
         }
+
+        /* ── Auth Modal Premium ── */
+        @keyframes ncv-modal-pop {
+            0%   { opacity: 0; transform: scale(0.88) translateY(24px); }
+            100% { opacity: 1; transform: scale(1)   translateY(0);     }
+        }
+        .ncv-auth-card {
+            animation: ncv-modal-pop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .ncv-loyalty-banner {
+            background: linear-gradient(135deg, #3b0764 0%, #6b21a8 55%, #eab308 100%);
+        }
+        .ncv-stamp {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 2px dashed rgba(234,179,8,0.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+        .ncv-stamp.filled {
+            background: linear-gradient(135deg, #eab308, #f59e0b);
+            border-color: #fbbf24;
+            box-shadow: 0 2px 8px rgba(234,179,8,0.45);
+        }
+        .ncv-input {
+            width: 100%;
+            background: #f5f3ff;
+            border: 1.5px solid #e9d5ff;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #1e1b4b;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .ncv-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168,85,247,0.15);
+        }
+        .ncv-tab-active  { color: #7e22ce; border-bottom: 2.5px solid #7e22ce; }
+        .ncv-tab-inactive { color: #9ca3af; border-bottom: 2.5px solid transparent; }
+        .ncv-btn-primary {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #7e22ce, #a855f7);
+            color: #fff;
+            font-weight: 800; font-size: 14px; border-radius: 12px;
+            cursor: pointer; transition: opacity .2s, transform .15s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            border: none;
+        }
+        .ncv-btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+        .ncv-btn-register {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #15803d, #16a34a);
+            color: #fff;
+            font-weight: 800; font-size: 14px; border-radius: 12px;
+            cursor: pointer; transition: opacity .2s, transform .15s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            border: none;
+        }
+        .ncv-btn-register:hover { opacity: .9; transform: translateY(-1px); }
     </style>
 </head>
 <body class="font-sans text-gray-800 bg-brand-50 antialiased selection:bg-brand-300 selection:text-brand-950">
@@ -1016,58 +1077,124 @@
         </div>
     </div>
 
-    <div id="user-auth-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative border border-brand-200">
-            <button onclick="closeUserAuthModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-800 text-2xl cursor-pointer">
+    <!-- ══════════════════════════════════════════════════════════════════
+         POP-UP AUTH MODAL — NailsConVal Premium Sign-in & Register
+    ════════════════════════════════════════════════════════════════════ -->
+    <div id="user-auth-modal" class="fixed inset-0 z-[999] hidden items-center justify-center p-4" style="background:rgba(30,11,80,0.82);backdrop-filter:blur(8px);display:none;">
+        <div class="ncv-auth-card bg-white rounded-3xl max-w-md w-full shadow-2xl relative overflow-hidden border border-purple-200" style="max-height:95vh;overflow-y:auto;">
+
+            <!-- Close button -->
+            <button onclick="closeUserAuthModal()" id="ncv-auth-close-btn"
+                class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/80 hover:bg-purple-100 text-gray-500 hover:text-brand-700 flex items-center justify-center text-lg transition-all shadow-sm cursor-pointer border border-purple-100"
+                aria-label="Cerrar">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
-            <div class="flex border-b border-gray-100 mb-6 font-bold text-sm">
-                <button onclick="switchAuthTab('login')" id="tab-auth-login" class="flex-1 pb-3 text-center border-b-2 border-brand-700 text-brand-900 cursor-pointer">
-                    Iniciar Sesión
-                </button>
-                <button onclick="switchAuthTab('register')" id="tab-auth-register" class="flex-1 pb-3 text-center border-b-2 border-transparent text-gray-400 hover:text-gray-700 cursor-pointer">
-                    Crear Cuenta
-                </button>
+            <!-- ── LOYALTY INCENTIVE BANNER ── -->
+            <div class="ncv-loyalty-banner px-6 pt-7 pb-6 text-white">
+                <!-- Badge -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="bg-yellow-400 text-purple-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wide shadow-sm">Club Fidelidad ✨</span>
+                    <span class="text-purple-200 text-[11px] font-semibold">NailsConVal</span>
+                </div>
+                <!-- Headline -->
+                <h2 class="font-serif text-xl sm:text-2xl font-bold leading-snug mb-2">
+                    ✨ ¡Crea tu cuenta en NailsConVal y acumula sellos para tu descuento en la Cita&nbsp;<span class="text-yellow-300">#11!</span>
+                </h2>
+                <p class="text-purple-200 text-xs leading-relaxed mb-4">
+                    Registra cada cita agendada por la web. Al completar <strong class="text-yellow-300">10 citas</strong>, recibes un <strong class="text-yellow-300">descuento exclusivo</strong> en tu próxima visita. 💅
+                </p>
+                <!-- Stamp mini-grid -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="ncv-stamp filled text-white"><i class="fa-solid fa-star text-[11px]"></i></div>
+                    <div class="ncv-stamp filled text-white"><i class="fa-solid fa-star text-[11px]"></i></div>
+                    <div class="ncv-stamp filled text-white"><i class="fa-solid fa-star text-[11px]"></i></div>
+                    <div class="ncv-stamp"><i class="fa-regular fa-circle text-yellow-400/40 text-[11px]"></i></div>
+                    <div class="ncv-stamp"><i class="fa-regular fa-circle text-yellow-400/40 text-[11px]"></i></div>
+                    <div class="ncv-stamp"><i class="fa-regular fa-circle text-yellow-400/40 text-[11px]"></i></div>
+                    <div class="ncv-stamp"><i class="fa-regular fa-circle text-yellow-400/40 text-[11px]"></i></div>
+                    <div class="ncv-stamp"><i class="fa-regular fa-circle text-yellow-400/40 text-[11px]"></i></div>
+                    <div class="ncv-stamp"><i class="fa-regular fa-circle text-yellow-400/40 text-[11px]"></i></div>
+                    <div class="ncv-stamp" style="border-color:#eab308;">
+                        <span class="text-yellow-300 font-black text-[10px]">🎁</span>
+                    </div>
+                    <span class="text-[10px] text-yellow-300 font-bold ml-1">= Descuento #11</span>
+                </div>
             </div>
 
-            <form id="auth-login-form" onsubmit="handleUserLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">WhatsApp o Correo</label>
-                    <input type="text" id="login-identifier" required placeholder="Ej: 3192395653 o correo@gmail.com" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <!-- ── TABS ── -->
+            <div class="px-6 pt-5">
+                <div class="flex gap-1 border-b border-purple-100 mb-5 text-sm font-bold">
+                    <button onclick="switchAuthTab('login')" id="tab-auth-login"
+                        class="flex-1 pb-3 text-center ncv-tab-active cursor-pointer transition-all">
+                        <i class="fa-solid fa-right-to-bracket mr-1.5 text-brand-600"></i>Iniciar Sesión
+                    </button>
+                    <button onclick="switchAuthTab('register')" id="tab-auth-register"
+                        class="flex-1 pb-3 text-center ncv-tab-inactive cursor-pointer transition-all">
+                        <i class="fa-solid fa-user-plus mr-1.5 text-emerald-600"></i>Crear Cuenta
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Contraseña</label>
-                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                </div>
-                <button type="submit" class="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Entrar a mi Cuenta</span>
-                </button>
-            </form>
 
-            <form id="auth-register-form" onsubmit="handleUserRegister(event)" class="space-y-4 hidden">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nombre Completo</label>
-                    <input type="text" id="reg-name" required placeholder="Ej: Carolina Restrepo" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Teléfono (WhatsApp)</label>
-                    <input type="tel" id="reg-phone" required placeholder="Ej: 3192395653" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Correo Electrónico</label>
-                    <input type="email" id="reg-email" required placeholder="Ej: cliente@gmail.com" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Crea tu Contraseña</label>
-                    <input type="password" id="reg-password" minlength="4" required placeholder="Mínimo 4 caracteres" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Registrarme y Guardar Datos</span>
-                </button>
-            </form>
+                <!-- LOGIN FORM -->
+                <form id="auth-login-form" onsubmit="handleUserLogin(event)" class="space-y-4 pb-6">
+                    <div>
+                        <label class="block text-[11px] font-bold text-purple-800 uppercase tracking-wider mb-1.5">WhatsApp o Correo</label>
+                        <input type="text" id="login-identifier" required
+                            placeholder="Ej: 3192395653 o correo@gmail.com"
+                            class="ncv-input">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-purple-800 uppercase tracking-wider mb-1.5">Contraseña</label>
+                        <input type="password" id="login-password" required
+                            placeholder="••••••••"
+                            class="ncv-input">
+                    </div>
+                    <button type="submit" class="ncv-btn-primary">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Entrar a mi Cuenta</span>
+                    </button>
+                    <p class="text-center text-xs text-gray-400 mt-1">
+                        ¿No tienes cuenta?
+                        <button type="button" onclick="switchAuthTab('register')" class="text-brand-700 font-bold hover:underline cursor-pointer">Regístrate gratis</button>
+                    </p>
+                </form>
+
+                <!-- REGISTER FORM -->
+                <form id="auth-register-form" onsubmit="handleUserRegister(event)" class="space-y-3 pb-6 hidden">
+                    <div>
+                        <label class="block text-[11px] font-bold text-purple-800 uppercase tracking-wider mb-1.5">Nombre Completo</label>
+                        <input type="text" id="reg-name" required
+                            placeholder="Ej: Carolina Restrepo"
+                            class="ncv-input">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-purple-800 uppercase tracking-wider mb-1.5">Número de WhatsApp</label>
+                        <input type="tel" id="reg-phone" required
+                            placeholder="Ej: 3192395653"
+                            class="ncv-input">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-purple-800 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
+                        <input type="email" id="reg-email" required
+                            placeholder="Ej: cliente@gmail.com"
+                            class="ncv-input">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-purple-800 uppercase tracking-wider mb-1.5">Crea tu Contraseña</label>
+                        <input type="password" id="reg-password" minlength="4" required
+                            placeholder="Mínimo 4 caracteres"
+                            class="ncv-input">
+                    </div>
+                    <button type="submit" class="ncv-btn-register">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Registrarme y Acumular Sellos 🎉</span>
+                    </button>
+                    <p class="text-center text-xs text-gray-400 mt-1">
+                        ¿Ya tienes cuenta?
+                        <button type="button" onclick="switchAuthTab('login')" class="text-brand-700 font-bold hover:underline cursor-pointer">Iniciar sesión</button>
+                    </p>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -1958,7 +2085,10 @@
                         </button>
                     </form>
 
-
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -4553,12 +4683,14 @@
             if (currentUserSession) {
                 openUserProfileModal();
             } else {
-                document.getElementById('user-auth-modal').classList.remove('hidden');
+                const modal = document.getElementById('user-auth-modal');
+                if (modal) modal.style.display = 'flex';
             }
         };
 
         window.closeUserAuthModal = function() {
-            document.getElementById('user-auth-modal').classList.add('hidden');
+            const modal = document.getElementById('user-auth-modal');
+            if (modal) modal.style.display = 'none';
         };
 
         window.openUserProfileModal = function() {
@@ -4586,13 +4718,13 @@
             const regForm = document.getElementById('auth-register-form');
 
             if (tab === 'login') {
-                loginBtn.className = 'flex-1 pb-3 text-center border-b-2 border-brand-700 text-brand-900 cursor-pointer';
-                regBtn.className = 'flex-1 pb-3 text-center border-b-2 border-transparent text-gray-400 hover:text-gray-700 cursor-pointer';
+                loginBtn.className = 'flex-1 pb-3 text-center ncv-tab-active cursor-pointer transition-all';
+                regBtn.className = 'flex-1 pb-3 text-center ncv-tab-inactive cursor-pointer transition-all';
                 loginForm.classList.remove('hidden');
                 regForm.classList.add('hidden');
             } else {
-                regBtn.className = 'flex-1 pb-3 text-center border-b-2 border-brand-700 text-brand-900 cursor-pointer';
-                loginBtn.className = 'flex-1 pb-3 text-center border-b-2 border-transparent text-gray-400 hover:text-gray-700 cursor-pointer';
+                regBtn.className = 'flex-1 pb-3 text-center ncv-tab-active cursor-pointer transition-all';
+                loginBtn.className = 'flex-1 pb-3 text-center ncv-tab-inactive cursor-pointer transition-all';
                 regForm.classList.remove('hidden');
                 loginForm.classList.add('hidden');
             }
@@ -6017,6 +6149,17 @@ Tus reglas principales de conversación:
 
             window.checkAdminRoute();
             window.addEventListener('hashchange', window.checkAdminRoute);
+
+            // ── 5-second auto pop-up for unauthenticated visitors ──
+            // Only shows once per browser session (sessionStorage flag)
+            if (!currentUserSession && !sessionStorage.getItem('ncv_popup_shown')) {
+                setTimeout(() => {
+                    if (!currentUserSession) {
+                        document.getElementById('user-auth-modal').style.display = 'flex';
+                        sessionStorage.setItem('ncv_popup_shown', '1');
+                    }
+                }, 5000);
+            }
 
             document.addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
