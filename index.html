@@ -4782,14 +4782,26 @@
 
         function parseTimeToMinutes(timeStr) {
             if (!timeStr) return null;
-            const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-            if (!match) return null;
-            let hours = parseInt(match[1], 10);
-            const minutes = parseInt(match[2], 10);
-            const period = match[3].toUpperCase();
-            if (period === 'PM' && hours < 12) hours += 12;
-            if (period === 'AM' && hours === 12) hours = 0;
-            return hours * 60 + minutes;
+            const str = timeStr.trim();
+            
+            const match12 = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+            if (match12) {
+                let hours = parseInt(match12[1], 10);
+                const minutes = parseInt(match12[2], 10);
+                const period = match12[3].toUpperCase();
+                if (period === 'PM' && hours < 12) hours += 12;
+                if (period === 'AM' && hours === 12) hours = 0;
+                return hours * 60 + minutes;
+            }
+
+            const match24 = str.match(/^(\d{1,2}):(\d{2})/);
+            if (match24) {
+                let hours = parseInt(match24[1], 10);
+                const minutes = parseInt(match24[2], 10);
+                return hours * 60 + minutes;
+            }
+
+            return null;
         }
 
         function getServiceDurationFromSummary(serviceSummary) {
@@ -4879,11 +4891,17 @@
             if (window.bookedSlots) {
                 const slotsForDate = window.bookedSlots[dateIso] || window.bookedSlots[selectedDateObj.toDateString()] || [];
                 slotsForDate.forEach(timeStr => {
-                    const isCanceledSlot = combinedApps.some(a => a.status === 'cancelada' && (a.dateKey === dateIso || a.dateKey === selectedDateObj.toDateString()) && a.time === timeStr);
-                    if (!isCanceledSlot) {
-                        const startMin = parseTimeToMinutes(timeStr);
-                        if (startMin !== null && !occupiedIntervals.some(i => i.start === startMin)) {
-                            occupiedIntervals.push({ start: startMin, end: startMin + 120 });
+                    const timeStrMin = parseTimeToMinutes(timeStr);
+                    const isCanceledSlot = combinedApps.some(a => {
+                        if (a.status !== 'cancelada') return false;
+                        if (!matchesDate(a, selectedDateObj, dateIso)) return false;
+                        const appMin = parseTimeToMinutes(a.time);
+                        return a.time === timeStr || (appMin !== null && timeStrMin !== null && appMin === timeStrMin);
+                    });
+
+                    if (!isCanceledSlot && timeStrMin !== null) {
+                        if (!occupiedIntervals.some(i => i.start === timeStrMin)) {
+                            occupiedIntervals.push({ start: timeStrMin, end: timeStrMin + 120 });
                         }
                     }
                 });
