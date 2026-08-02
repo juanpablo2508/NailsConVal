@@ -2009,7 +2009,7 @@
 
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    if (data && data.dateKey && data.time) {
+                    if (data && data.dateKey && data.time && data.status !== 'cancelada') {
                         if (!cloudBookedSlots[data.dateKey]) {
                             cloudBookedSlots[data.dateKey] = [];
                         }
@@ -4850,13 +4850,18 @@
 
             const combinedApps = [...firebaseApps];
             localApps.forEach(la => {
-                if (!combinedApps.some(a => (a.id && la.id && a.id === la.id) || (a.time === la.time && a.dateKey === la.dateKey))) {
+                const existingIdx = combinedApps.findIndex(a => (a.id && la.id && a.id === la.id) || (a.time === la.time && a.dateKey === la.dateKey));
+                if (existingIdx >= 0) {
+                    if (la.status === 'cancelada') combinedApps[existingIdx].status = 'cancelada';
+                } else {
                     combinedApps.push(la);
                 }
             });
 
             const activeApps = combinedApps.filter(app => {
                 if (app.status === 'cancelada') return false;
+                const localMatch = localApps.find(l => l.id === app.id || (l.dateKey === app.dateKey && l.time === app.time));
+                if (localMatch && localMatch.status === 'cancelada') return false;
                 return matchesDate(app, selectedDateObj, dateIso);
             });
 
@@ -4874,9 +4879,12 @@
             if (window.bookedSlots) {
                 const slotsForDate = window.bookedSlots[dateIso] || window.bookedSlots[selectedDateObj.toDateString()] || [];
                 slotsForDate.forEach(timeStr => {
-                    const startMin = parseTimeToMinutes(timeStr);
-                    if (startMin !== null && !occupiedIntervals.some(i => i.start === startMin)) {
-                        occupiedIntervals.push({ start: startMin, end: startMin + 120 });
+                    const isCanceledSlot = combinedApps.some(a => a.status === 'cancelada' && (a.dateKey === dateIso || a.dateKey === selectedDateObj.toDateString()) && a.time === timeStr);
+                    if (!isCanceledSlot) {
+                        const startMin = parseTimeToMinutes(timeStr);
+                        if (startMin !== null && !occupiedIntervals.some(i => i.start === startMin)) {
+                            occupiedIntervals.push({ start: startMin, end: startMin + 120 });
+                        }
                     }
                 });
             }
