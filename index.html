@@ -1904,134 +1904,166 @@
             </div>
 
             <div id="admin-tab-content-discounts" class="admin-tab-content hidden max-w-6xl mx-auto space-y-6">
-                <div class="bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-xl">
-                    <div class="mb-6">
-                        <h3 class="font-serif text-2xl font-bold text-white mb-1 flex items-center gap-2">
-                            <i class="fa-solid fa-tags text-amber-400"></i>
-                            <span>Configuración de Descuentos, Temas & Fidelidad</span>
-                        </h3>
-                        <p class="text-xs text-gray-400">Personaliza la tarjeta de fidelidad, sus premios y el diseño para fechas especiales. Usa la vista previa para ver cómo lucirá en la cuenta de las clientas.</p>
-                    </div>
-
-                    <form onsubmit="saveAdminDiscountSettings(event)" class="border-t border-gray-800 pt-6">
-                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                            <!-- Columna 1: Formulario (ocupa 3/5) -->
-                            <div class="lg:col-span-3 space-y-6">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Porcentaje Descuento (Cita #11)</label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="number" id="admin-loyalty-percent-input" min="0" max="100" required value="66" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-lg font-bold text-amber-400 focus:outline-none focus:border-amber-400" oninput="if(typeof updateDiscountPreview === 'function') updateDiscountPreview()">
-                                            <span class="text-lg font-bold text-gray-300">%</span>
+                <div class="space-y-6">
+                    <!-- Sección 1: Fidelidad -->
+                    <div class="bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-xl">
+                        <div class="mb-6">
+                            <h3 class="font-serif text-2xl font-bold text-white mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-crown text-amber-400"></i>
+                                <span>Programa de Fidelidad (Cita #11)</span>
+                            </h3>
+                            <p class="text-xs text-gray-400">Configura la tarjeta automática. Solo afecta a clientas que completen 10 citas.</p>
+                        </div>
+                        <form onsubmit="saveAdminDiscountSettings(event)" class="border-t border-gray-800 pt-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                                <div class="lg:col-span-3 space-y-6">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Descuento (%)</label>
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" id="admin-loyalty-percent-input" min="0" max="100" required value="66" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-lg font-bold text-amber-400 focus:outline-none focus:border-amber-400" oninput="if(typeof updateDiscountPreview === 'function') updateDiscountPreview()">
+                                                <span class="text-lg font-bold text-gray-300">%</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Servicio Regalo</label>
+                                            <input type="text" id="admin-loyalty-reward-input" value="Manicura Semipermanente" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-amber-300 font-bold focus:outline-none focus:border-amber-400" oninput="if(typeof updateDiscountPreview === 'function') updateDiscountPreview()">
                                         </div>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Servicio Regalo (Cita #11)</label>
-                                        <input type="text" id="admin-loyalty-reward-input" value="Manicura Semipermanente Con Descuento Especial" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-amber-300 font-bold focus:outline-none focus:border-amber-400" oninput="if(typeof updateDiscountPreview === 'function') updateDiscountPreview()">
-                                    </div>
-                                </div>
 
-                                <div class="bg-gradient-to-r from-gray-800 to-gray-900 p-5 rounded-2xl border border-gray-700 space-y-4">
-                                    <div class="flex items-center justify-between">
+                                    <div class="bg-gradient-to-r from-gray-800 to-gray-900 p-5 rounded-2xl border border-gray-700 space-y-4">
                                         <div class="flex items-center gap-2 text-white font-bold text-sm">
                                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-base animate-pulse"></i>
                                             <span>Diseño & Tema de la Tarjeta</span>
                                         </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Tema Base</label>
+                                            <select id="admin-ticket-theme-select" onchange="if(typeof updateDiscountPreview === 'function') updateDiscountPreview()" class="w-full bg-gray-950 border border-gray-600 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-amber-400 text-white cursor-pointer">
+                                                <option value="purple">💜 Estándar (Purple Glam)</option>
+                                                <option value="rose">🌸 Rosa Clásico</option>
+                                                <option value="ruby">❤️ Rojo Intenso</option>
+                                                <option value="gold">👑 VIP Dorado</option>
+                                                <option value="emerald">🌿 Verde Spa</option>
+                                                <option value="dark">🖤 Oscuro Minimalista</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Insignia (Ej: Tarjeta Club Fidelidad)</label>
+                                            <input type="text" id="admin-ticket-badge-input" value="Tarjeta Club Fidelidad" class="w-full bg-gray-950 border border-gray-600 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-amber-400 text-white" oninput="if(typeof updateDiscountPreview === 'function') updateDiscountPreview()">
+                                        </div>
                                     </div>
-
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Tema / Fecha Especial</label>
-                                        <select id="admin-ticket-theme-select" onchange="if(typeof updateDiscountPreview === 'function') updateDiscountPreview()" class="w-full bg-gray-950 border border-gray-600 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-amber-400 text-white cursor-pointer shadow-sm">
-                                            <option value="purple">💜 Estándar (Purple Glam)</option>
-                                            <option value="rose">🌸 Día de la Mujer / Madre (Rosa y Flores)</option>
-                                            <option value="ruby">❤️ Amor y Amistad (Rojo y Corazones)</option>
-                                            <optgroup label="――― DÍAS ESPECIALES ―――">
-                                                <option value="father">👔 Día del Padre (Azul, Relojes)</option>
-                                                <option value="man">💙 Día del Hombre (Azul Marino)</option>
-                                            </optgroup>
-                                            <optgroup label="――― DÍA DE LAS PROFESIONES ―――">
-                                                <option value="medico">🩺 Día del Médico (Celeste / Blanco)</option>
-                                                <option value="enfermera">🏥 Día de la Enfermera (Rosa / Blanco)</option>
-                                                <option value="profesor">🍎 Día del Profesor/a (Naranja Cálido)</option>
-                                                <option value="abogado">⚖️ Día del Abogado/a (Gris / Plata)</option>
-                                                <option value="ingeniero">⚙️ Día del Ingeniero/a (Acero / Amarillo)</option>
-                                                <option value="contadora">🧮 Día de la Contadora (Verde Esmeralda)</option>
-                                                <option value="social">🤝 Día de la Trabajadora Social (Lila)</option>
-                                            </optgroup>
-                                            <optgroup label="――― OTROS TEMAS ―――">
-                                                <option value="gold">👑 Aniversario / VIP (Dorado)</option>
-                                                <option value="emerald">🌿 Spa / Relajación (Verde)</option>
-                                                <option value="dark">🖤 Black Friday (Oscuro)</option>
-                                            </optgroup>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Insignia de la Tarjeta</label>
-                                        <input type="text" id="admin-ticket-badge-input" placeholder="Ej: ✨ Especial Día de la Madre" value="Tarjeta Club Fidelidad" class="w-full bg-gray-950 border border-gray-600 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-amber-400 text-white" oninput="if(typeof updateDiscountPreview === 'function') updateDiscountPreview()">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Código Promo (Global)</label>
+                                            <input type="text" id="admin-promo-code-input" placeholder="Ej: VAL10" value="VAL10" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-amber-400 uppercase">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Texto Banner Superior</label>
+                                            <input type="text" id="admin-top-banner-input" value="✨ ¡Agenda tu cita de esta semana!" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400">
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div class="lg:col-span-2">
+                                    <label class="block text-xs font-bold text-gray-300 uppercase mb-2 flex justify-between items-center">
+                                        <span>Vista Previa Fidelidad</span>
+                                        <span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded border border-green-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> En Vivo</span>
+                                    </label>
+                                    <div class="bg-gray-950 p-4 sm:p-6 rounded-2xl border border-gray-800 shadow-inner sticky top-6">
+                                        <div id="preview-loyalty-card" class="bg-gradient-to-br from-brand-950 to-purple-900 text-white p-5 rounded-2xl border border-brand-400/30 shadow-xl transition-all duration-500 relative overflow-hidden">
+                                            <div class="theme-decorations absolute inset-0 pointer-events-none"></div>
+                                            <div class="flex items-center justify-between mb-3 relative z-10">
+                                                <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <i id="preview-card-icon" class="fa-solid fa-crown"></i>
+                                                    <span id="preview-badge-text">Tarjeta Club Fidelidad</span>
+                                                </span>
+                                                <span class="text-[10px] bg-white/10 px-2.5 py-0.5 rounded-full font-bold text-brand-200 border border-white/10">9 / 10 citas</span>
+                                            </div>
+
+                                            <div class="grid grid-cols-5 gap-1.5 sm:gap-2 my-4 justify-items-center relative z-10">
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
+                                                <div class="ncv-stamp w-6 h-6 sm:w-8 sm:h-8" style="border-color:#eab308;"><span class="text-yellow-300 font-black text-[10px]">🎁</span></div>
+                                            </div>
+
+                                            <div class="mt-4 pt-4 border-t border-white/15 text-center relative z-10">
+                                                <p class="text-[10px] text-amber-200 mb-1">Próximo Premio en cita #11:</p>
+                                                <h4 class="font-serif font-bold text-white text-sm"><span id="preview-percent">66%</span> OFF en <span id="preview-reward">Manicura</span></h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-6 mt-6 border-t border-gray-800 flex justify-end">
+                                <button type="submit" class="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-brand-950 font-extrabold px-8 py-3.5 rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span>Guardar Fidelidad</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Sección 2: Pop-Ups Dinámicos -->
+                    <div class="bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-xl mt-6">
+                        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="font-serif text-2xl font-bold text-white mb-1 flex items-center gap-2">
+                                    <i class="fa-solid fa-image text-pink-400"></i>
+                                    <span>Pop-Up Promocional Dinámico</span>
+                                </h3>
+                                <p class="text-xs text-gray-400">Aparece a cada clienta al entrar a la página. Ideal para Fechas Especiales.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="admin-popup-active" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                <span class="ml-3 text-sm font-bold text-white uppercase tracking-wider" id="admin-popup-status-text">Inactivo</span>
+                            </label>
+                        </div>
+                        <form onsubmit="saveAdminPopupSettings(event)" class="border-t border-gray-800 pt-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div class="space-y-6">
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Código Promocional</label>
-                                        <input type="text" id="admin-promo-code-input" placeholder="Ej: VAL10" value="VAL10" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-amber-400 uppercase">
+                                        <label class="block text-xs font-bold text-gray-300 uppercase mb-2">URL de la Imagen</label>
+                                        <input type="url" id="admin-popup-image" placeholder="https://..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Texto Banner Superior</label>
-                                        <input type="text" id="admin-top-banner-input" value="✨ ¡Agenda tu cita de esta semana!" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400">
+                                        <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Título Principal</label>
+                                        <input type="text" id="admin-popup-title" placeholder="Ej: ¡Feliz Día de la Madre!" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-pink-300 font-bold focus:outline-none focus:border-pink-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Mensaje / Descripción</label>
+                                        <textarea id="admin-popup-message" rows="3" placeholder="Separa tu cita hoy y llévate un regalo sorpresa..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-pink-500 resize-none"></textarea>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-300 uppercase mb-2">Vista Previa Pop-Up</label>
+                                    <div class="bg-gray-950 rounded-2xl border border-gray-800 overflow-hidden relative shadow-lg group">
+                                        <div class="aspect-[4/3] bg-gray-900 w-full flex items-center justify-center overflow-hidden">
+                                            <img id="admin-popup-preview-img" src="" class="w-full h-full object-cover hidden" alt="Vista previa">
+                                            <i id="admin-popup-preview-icon" class="fa-solid fa-image text-4xl text-gray-700"></i>
+                                        </div>
+                                        <div class="p-4 bg-gradient-to-t from-gray-900 to-transparent absolute bottom-0 w-full">
+                                            <h4 id="admin-popup-preview-title" class="font-serif font-bold text-white text-lg drop-shadow-md">Título</h4>
+                                            <p id="admin-popup-preview-message" class="text-xs text-gray-200 mt-1 drop-shadow-md">Mensaje de promoción...</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Columna 2: Vista Previa (ocupa 2/5) -->
-                            <div class="lg:col-span-2">
-                                <label class="block text-xs font-bold text-gray-300 uppercase mb-2 flex justify-between items-center">
-                                    <span>Vista Previa en Vivo</span>
-                                    <span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded border border-green-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> En Vivo</span>
-                                </label>
-                                <div class="bg-gray-950 p-4 sm:p-6 rounded-2xl border border-gray-800 shadow-inner sticky top-6">
-                                    <!-- Tarjeta Preview (Misma estructura que la de profile) -->
-                                    <div id="preview-loyalty-card" class="bg-gradient-to-br from-brand-950 to-purple-900 text-white p-5 rounded-2xl border border-brand-400/30 shadow-xl transition-all duration-500 relative overflow-hidden">
-                                        <div class="theme-decorations absolute inset-0 pointer-events-none"></div>
-                                        <div class="flex items-center justify-between mb-3 relative z-10">
-                                            <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                                                <i id="preview-card-icon" class="fa-solid fa-crown"></i>
-                                                <span id="preview-badge-text">Tarjeta Club Fidelidad</span>
-                                            </span>
-                                            <span class="text-[10px] bg-white/10 px-2.5 py-0.5 rounded-full font-bold text-brand-200 border border-white/10">9 / 10 citas</span>
-                                        </div>
-
-                                        <div class="grid grid-cols-5 gap-1.5 sm:gap-2 my-4 justify-items-center relative z-10">
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp filled text-white w-6 h-6 sm:w-8 sm:h-8"><i class="fa-solid fa-star text-[8px] sm:text-[11px]"></i></div>
-                                            <div class="ncv-stamp w-6 h-6 sm:w-8 sm:h-8" style="border-color:#eab308;"><span class="text-yellow-300 font-black text-[10px]">🎁</span></div>
-                                        </div>
-
-                                        <div class="mt-4 pt-4 border-t border-white/15 text-center relative z-10">
-                                            <p class="text-[10px] text-amber-200 mb-1">Próximo Premio en cita #11:</p>
-                                            <h4 class="font-serif font-bold text-white text-sm"><span id="preview-percent">66%</span> OFF en <span id="preview-reward">Manicura</span></h4>
-                                        </div>
-                                    </div>
-                                    <p class="text-[10px] text-gray-500 text-center mt-4">Esta vista previa es interactiva. Escribe en los campos de la izquierda para ver cómo se actualizará en los perfiles de las clientas.</p>
-                                </div>
+                            <div class="pt-6 mt-6 border-t border-gray-800 flex justify-end">
+                                <button type="submit" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-extrabold px-8 py-3.5 rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-bullhorn"></i>
+                                    <span>Guardar Pop-Up</span>
+                                </button>
                             </div>
-                        </div>
-
-                        <div class="pt-6 mt-6 border-t border-gray-800 flex justify-end">
-                            <button type="submit" class="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-brand-950 font-extrabold px-8 py-3.5 rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 cursor-pointer">
-                                <i class="fa-solid fa-floppy-disk"></i>
-                                <span>Guardar Cambios de Configuración</span>
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -2281,10 +2313,10 @@
                 </div>
 
                 <!-- TABLA DE CITAS -->
-                <div class="bg-gray-900 rounded-3xl border border-gray-800 shadow-xl overflow-hidden">
-                    <div class="overflow-x-auto">
+                <div class="bg-gray-900 rounded-3xl border border-gray-800 shadow-xl overflow-hidden flex flex-col">
+                    <div class="overflow-auto max-h-[65vh] relative">
                         <table class="w-full text-left text-sm text-gray-300 whitespace-nowrap">
-                            <thead class="bg-gray-950/80 text-gray-400 uppercase font-black text-[10px] tracking-widest border-b border-gray-800">
+                            <thead class="bg-gray-950/90 backdrop-blur-sm text-gray-400 uppercase font-black text-[10px] tracking-widest border-b border-gray-800 sticky top-0 z-20 shadow-md">
                                 <tr>
                                     <th class="px-6 py-5">Cliente & Detalles</th>
                                     <th class="px-6 py-5">Servicio Seleccionado</th>
@@ -2598,7 +2630,7 @@
                             cloudBookedSlots[data.dateKey].push(data.time);
                         }
                     }
-                    allAppointments.push({ id: docSnap.id, ...data });
+                    allAppointments.push({ ...data, id: docSnap.id });
                 });
                 
                 window.bookedSlots = cloudBookedSlots;
@@ -2950,8 +2982,8 @@
 
             if (window.dbInstance && window.firestoreUtils) {
                 try {
-                    const { collection, addDoc } = window.firestoreUtils;
-                    await addDoc(collection(window.dbInstance, 'appointments'), newWalkIn);
+                    const { doc, setDoc } = window.firestoreUtils;
+                    await setDoc(doc(window.dbInstance, 'appointments', newWalkIn.id), newWalkIn);
                 } catch(e){}
             }
 
@@ -3345,6 +3377,9 @@
             }
 
             if (tabName === 'charts') renderAdminCharts();
+            if (tabName === 'discounts' && typeof window.populatePopupAdminFields === 'function') {
+                window.populatePopupAdminFields();
+            }
             if (tabName === 'bookings') {
                 renderAdminBookingsTable();
                 renderAdminCancellationAlerts();
@@ -3557,8 +3592,13 @@
                     if (include) {
                         let p = 0;
                         if (app.service) {
-                            const match = app.service.match(/\$([\d.]+)\s*COP/);
-                            if (match) p = parseInt(match[1].replace(/\./g, ''), 10);
+                            const matches = [...app.service.matchAll(/\$([\d.,]+)\s*COP/g)];
+                            if (matches.length > 0) {
+                                p = matches.reduce((acc, m) => acc + parseInt(m[1].replace(/[.,]/g, ''), 10), 0);
+                            } else {
+                                const sFound = (window.SERVICES_DATA || []).find(s => app.service.toLowerCase().includes(s.name.toLowerCase()));
+                                if (sFound) p = sFound.price;
+                            }
                         }
                         accumulatedIncome += p;
                     }
@@ -3679,8 +3719,13 @@
                         todayCompleted++;
                         let p = 0;
                         if (app.service) {
-                            const match = app.service.match(/\$([\d.]+)\s*COP/);
-                            if (match) p = parseInt(match[1].replace(/\./g, ''), 10);
+                            const matches = [...app.service.matchAll(/\$([\d.,]+)\s*COP/g)];
+                            if (matches.length > 0) {
+                                p = matches.reduce((acc, m) => acc + parseInt(m[1].replace(/[.,]/g, ''), 10), 0);
+                            } else {
+                                const sFound = (window.SERVICES_DATA || []).find(s => app.service.toLowerCase().includes(s.name.toLowerCase()));
+                                if (sFound) p = sFound.price;
+                            }
                         }
                         todayIncome += p;
                     }
@@ -3712,7 +3757,8 @@
             let completedByMonth = new Array(12).fill(0);
             let confirmedByMonth = new Array(12).fill(0);
             let canceledByMonth = new Array(12).fill(0);
-            let revenueByMonth = new Array(12).fill(0);
+            let completedRevenueByMonth = new Array(12).fill(0);
+            let pendingRevenueByMonth = new Array(12).fill(0);
             let servicesRevenue = {};
 
             let realCompletedSum = 0;
@@ -3740,10 +3786,10 @@
                 let price = 0;
                 let sName = app.service || 'Otro';
                 if (app.service) {
-                    const match = app.service.match(/\$([\d.]+)\s*COP/);
-                    if (match) {
-                        price = parseInt(match[1].replace(/\./g, ''), 10);
-                        sName = app.service.replace(/\s*\(\$[^)]+\)/, '').trim();
+                    const matches = [...app.service.matchAll(/\$([\d.,]+)\s*COP/g)];
+                    if (matches.length > 0) {
+                        price = matches.reduce((acc, m) => acc + parseInt(m[1].replace(/[.,]/g, ''), 10), 0);
+                        sName = app.service.replace(/\s*\(\$[^)]+\)/g, '').trim();
                     } else {
                         const sFound = (window.SERVICES_DATA || []).find(s => app.service.toLowerCase().includes(s.name.toLowerCase()));
                         if (sFound) {
@@ -3755,20 +3801,21 @@
 
                 if (app.status === 'cancelada') {
                     if (isValidMonth) canceledByMonth[monthIndex]++;
-                    const isRefundEligible = app.refundEligible !== undefined ? app.refundEligible : ((app.cancellationNoticeHours || 48) >= 12);
-                    if (isRefundEligible) refundsDeductedCount++; else retainedAbonosCount++;
+                    const isRefunded = app.isRefunded !== undefined ? app.isRefunded : (app.refundEligible !== undefined ? app.refundEligible : ((app.cancellationNoticeHours || 48) >= 12));
+                    if (isRefunded) refundsDeductedCount++; else retainedAbonosCount++;
                 } else {
                     nonCanceledCount++;
-                    if (isValidMonth) revenueByMonth[monthIndex] += price;
                     
                     if (app.status === 'completada') {
                         if (isValidMonth) completedByMonth[monthIndex]++;
+                        if (isValidMonth) completedRevenueByMonth[monthIndex] += price;
                         realCompletedSum += price;
                         completedCount++;
                         if(!servicesRevenue[sName]) servicesRevenue[sName] = 0;
                         servicesRevenue[sName] += price;
                     } else {
                         if (isValidMonth) confirmedByMonth[monthIndex]++;
+                        if (isValidMonth) pendingRevenueByMonth[monthIndex] += price;
                         pendingSum += price;
                     }
                 }
@@ -3803,12 +3850,7 @@
                 }
             });
 
-            const hasCompletedFlag = filteredApps.some(a => a.status === 'completada');
-            if (!hasCompletedFlag) {
-                realCompletedSum = pendingSum;
-                pendingSum = 0;
-                completedCount = nonCanceledCount;
-            }
+            // Se ha removido la lógica que asignaba ingresos pendientes a completados falsamente.
 
             const netAbonosSum = (nonCanceledCount + retainedAbonosCount) * 10000;
             const avgTicket = completedCount > 0 ? (realCompletedSum / completedCount) : 0;
@@ -3929,16 +3971,24 @@
                         type: 'bar',
                         data: {
                             labels: monthsLabels,
-                            datasets: [{
-                                label: 'Ingresos ($ COP)',
-                                data: revenueByMonth,
-                                backgroundColor: '#10b981',
-                                borderRadius: 6
-                            }]
+                            datasets: [
+                                {
+                                    label: 'Ingresos Completados',
+                                    data: completedRevenueByMonth,
+                                    backgroundColor: '#10b981',
+                                    borderRadius: 4
+                                },
+                                {
+                                    label: 'Ingresos Proyectados',
+                                    data: pendingRevenueByMonth,
+                                    backgroundColor: '#fcd34d',
+                                    borderRadius: 4
+                                }
+                            ]
                         },
                         options: {
                             responsive: true, maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
+                            plugins: { legend: { display: true, labels: { color: '#9ca3af', boxWidth: 10, font: { size: 10 } } } },
                             scales: {
                                 x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
                                 y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 }, callback: (val) => '$' + (val / 1000) + 'k' } }
@@ -4291,6 +4341,92 @@
             showToast(`✨ ¡Premio, porcentaje (${percent}%) y diseño especial de ticket actualizados!`);
         };
 
+        window.saveAdminPopupSettings = function(event) {
+            event.preventDefault();
+            const imageUrl = document.getElementById('admin-popup-image').value.trim();
+            const title = document.getElementById('admin-popup-title').value.trim();
+            const message = document.getElementById('admin-popup-message').value.trim();
+            const isActive = document.getElementById('admin-popup-active').checked;
+
+            const popupSettings = {
+                imageUrl: imageUrl,
+                title: title,
+                message: message,
+                isActive: isActive
+            };
+            
+            window.adminPopupSettings = popupSettings;
+            localStorage.setItem('ncv_marketing_popup', JSON.stringify(popupSettings));
+
+            if (window.dbInstance && window.firestoreUtils) {
+                try {
+                    const { doc, setDoc } = window.firestoreUtils;
+                    setDoc(doc(window.dbInstance, 'settings', 'marketing_popup'), popupSettings, { merge: true }).then(() => {
+                        showToast('🎈 Pop-Up guardado en la nube.');
+                    }).catch(e => {
+                        console.error(e);
+                        showToast('Error al guardar el Pop-Up.', 'error');
+                    });
+                } catch(e) {}
+            }
+        };
+
+        window.populatePopupAdminFields = function() {
+            if (!window.adminPopupSettings) return;
+            const p = window.adminPopupSettings;
+            if (document.getElementById('admin-popup-image')) document.getElementById('admin-popup-image').value = p.imageUrl || '';
+            if (document.getElementById('admin-popup-title')) document.getElementById('admin-popup-title').value = p.title || '';
+            if (document.getElementById('admin-popup-message')) document.getElementById('admin-popup-message').value = p.message || '';
+            if (document.getElementById('admin-popup-active')) {
+                document.getElementById('admin-popup-active').checked = !!p.isActive;
+                const statusText = document.getElementById('admin-popup-status-text');
+                if (statusText) statusText.textContent = p.isActive ? 'Activo' : 'Inactivo';
+            }
+            if (typeof updatePopupPreview === 'function') updatePopupPreview();
+        };
+
+        window.setupPopupPreviewListeners = function() {
+            const inputs = ['admin-popup-image', 'admin-popup-title', 'admin-popup-message', 'admin-popup-active'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', updatePopupPreview);
+                    el.addEventListener('change', updatePopupPreview);
+                }
+            });
+        };
+
+        window.updatePopupPreview = function() {
+            const imageUrl = document.getElementById('admin-popup-image')?.value.trim();
+            const title = document.getElementById('admin-popup-title')?.value.trim() || 'Título';
+            const message = document.getElementById('admin-popup-message')?.value.trim() || 'Mensaje de promoción...';
+            const isActive = document.getElementById('admin-popup-active')?.checked;
+
+            const statusText = document.getElementById('admin-popup-status-text');
+            if (statusText) statusText.textContent = isActive ? 'Activo' : 'Inactivo';
+
+            const imgEl = document.getElementById('admin-popup-preview-img');
+            const iconEl = document.getElementById('admin-popup-preview-icon');
+            const titleEl = document.getElementById('admin-popup-preview-title');
+            const msgEl = document.getElementById('admin-popup-preview-message');
+
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = message;
+
+            if (imageUrl && imgEl && iconEl) {
+                imgEl.src = imageUrl;
+                imgEl.classList.remove('hidden');
+                iconEl.classList.add('hidden');
+            } else if (imgEl && iconEl) {
+                imgEl.classList.add('hidden');
+                iconEl.classList.remove('hidden');
+            }
+        };
+
+        setTimeout(() => {
+            if (typeof setupPopupPreviewListeners === 'function') setupPopupPreviewListeners();
+        }, 1000);
+
         window.renderAdminBookingsTable = function() {
             const tableBody = document.getElementById('admin-bookings-table-body');
             if (!tableBody) return;
@@ -4321,6 +4457,18 @@
                 </td></tr>`;
                 return;
             }
+
+            // Ordenar citas cronológicamente por fecha y hora
+            allApps.sort((a, b) => {
+                const getMillis = (app) => {
+                    const dateStr = app.appointmentDateIso || app.dateKey || '1970-01-01';
+                    const timeStr = app.time || '12:00 AM';
+                    let dt = new Date(`${dateStr} ${timeStr}`);
+                    if (isNaN(dt.getTime())) dt = new Date(dateStr);
+                    return isNaN(dt.getTime()) ? 0 : dt.getTime();
+                };
+                return getMillis(a) - getMillis(b); // Orden ascendente (las más antiguas / de la mañana arriba)
+            });
 
             tableBody.innerHTML = '';
             allApps.forEach(app => {
@@ -4384,9 +4532,7 @@
                             <a href="https://wa.me/${(app.phone || '').replace(/[^0-9]/g,'')}?text=Hola%20${encodeURIComponent(app.name || 'Cliente')},%20te%20escribo%20de%20NailsConVal" target="_blank" class="w-9 h-9 flex items-center justify-center bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all shadow-sm border border-emerald-500/20 hover:scale-110" title="Contactar por WhatsApp">
                                 <i class="fa-brands fa-whatsapp text-base"></i>
                             </a>
-                            <button onclick="changeBookingStatus('${app.id || ''}', 'confirmada')" class="w-9 h-9 flex items-center justify-center bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-white rounded-lg transition-all shadow-sm border border-amber-500/20 hover:scale-110" title="Marcar como Confirmada">
-                                <i class="fa-regular fa-clock text-sm"></i>
-                            </button>
+
                             <button onclick="changeBookingStatus('${app.id || ''}', 'completada')" class="w-9 h-9 flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg transition-all shadow-sm border border-blue-500/20 hover:scale-110" title="Marcar como Completada">
                                 <i class="fa-solid fa-check text-sm"></i>
                             </button>
@@ -4439,13 +4585,14 @@
                 if (window.dbInstance && window.firestoreUtils && appId) {
                     try {
                         const { doc, setDoc } = window.firestoreUtils;
-                        setDoc(doc(window.dbInstance, 'appointments', appId), { 
-                            status: newStatus, 
-                            refundEligible: apps[idx].refundEligible, 
-                            isRefunded: apps[idx].isRefunded,
-                            cancellationNoticeHours: apps[idx].cancellationNoticeHours
-                        }, { merge: true });
-                    } catch(e){}
+                        let updateData = { status: newStatus };
+                        if (newStatus === 'cancelada') {
+                            updateData.refundEligible = apps[idx].refundEligible;
+                            updateData.isRefunded = apps[idx].isRefunded;
+                            updateData.cancellationNoticeHours = apps[idx].cancellationNoticeHours;
+                        }
+                        setDoc(doc(window.dbInstance, 'appointments', appId), updateData, { merge: true });
+                    } catch(e){ console.error("Error updating appointment status:", e); }
                 }
 
                 showToast(`Cita de ${escapeHtml(apps[idx].name || 'Cliente')} actualizada a: ${newStatus.toUpperCase()}`);
@@ -5355,8 +5502,8 @@
 
             if (window.dbInstance && window.firestoreUtils) {
                 try {
-                    const { collection, addDoc } = window.firestoreUtils;
-                    await addDoc(collection(window.dbInstance, 'appointments'), pendingAppointmentData);
+                    const { doc, setDoc } = window.firestoreUtils;
+                    await setDoc(doc(window.dbInstance, 'appointments', pendingAppointmentData.id), pendingAppointmentData);
                 } catch(e){}
             }
 
@@ -6724,7 +6871,16 @@
                 const isoDate = `${yyyy}-${mm}-${dd}`;
                 
                 const dayApps = allApps.filter(app => {
-                    const appIso = app.appointmentDateIso || (app.dateKey && app.dateKey.substring(0, 10));
+                    let appIso = app.appointmentDateIso;
+                    if (!appIso && app.dateKey) {
+                        const d = new Date(app.dateKey);
+                        if (!isNaN(d.getTime())) {
+                            const y = d.getFullYear();
+                            const m = String(d.getMonth() + 1).padStart(2, '0');
+                            const day = String(d.getDate()).padStart(2, '0');
+                            appIso = `${y}-${m}-${day}`;
+                        }
+                    }
                     return appIso === isoDate;
                 });
 
@@ -6762,7 +6918,7 @@
                                     <span class="text-[9px] sm:text-[10px] opacity-60 truncate">${escapeHtml(shortService)}</span>
                                 </div>
                                 <div class="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10 bg-gray-900 rounded-md p-0.5">
-                                    <button onclick="changeBookingStatus('${app.id}', 'confirmada'); setTimeout(renderNotebookWeekView, 100);" class="text-amber-400 hover:text-amber-300 w-5 h-5 flex items-center justify-center rounded" title="Confirmar"><i class="fa-solid fa-clock text-[10px]"></i></button>
+
                                     <button onclick="changeBookingStatus('${app.id}', 'cancelada'); setTimeout(renderNotebookWeekView, 100);" class="text-rose-400 hover:text-rose-300 w-5 h-5 flex items-center justify-center rounded" title="Cancelar"><i class="fa-solid fa-ban text-[10px]"></i></button>
                                 </div>
                             </div>
@@ -6786,6 +6942,88 @@
                 else rightPage.innerHTML += dayHTML;
             }
         };
+    </script>
+    <!-- Pop-Up Marketing (Celebraciones) -->
+    <div id="marketing-popup-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-gray-900 border border-pink-500/30 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.15)] max-w-sm w-full relative transform scale-95 transition-transform duration-300" id="marketing-popup-modal">
+            <!-- Botón Cerrar -->
+            <button onclick="closeMarketingPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/50 text-gray-300 hover:text-white hover:bg-black/80 rounded-full transition-colors z-10 backdrop-blur-md">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <!-- Imagen -->
+            <div class="aspect-[4/3] w-full relative bg-gray-950">
+                <img id="marketing-popup-img" src="" class="w-full h-full object-cover" alt="Promoción">
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+            </div>
+            
+            <!-- Contenido -->
+            <div class="p-6 text-center relative z-10 -mt-10">
+                <h3 id="marketing-popup-title" class="font-serif text-2xl font-bold text-white mb-2 drop-shadow-md">Título</h3>
+                <p id="marketing-popup-message" class="text-gray-300 text-sm mb-6 leading-relaxed">Mensaje promocional de la celebración especial.</p>
+                
+                <button onclick="bookFromPopup()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black text-lg py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    ¡Agendar ahora!
+                </button>
+                <button onclick="closeMarketingPopup()" class="w-full mt-3 text-xs text-gray-400 hover:text-white font-bold transition-colors">
+                    Quizás más tarde
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.closeMarketingPopup = function() {
+            const overlay = document.getElementById('marketing-popup-overlay');
+            const modal = document.getElementById('marketing-popup-modal');
+            if (overlay && modal) {
+                overlay.classList.remove('opacity-100');
+                modal.classList.remove('scale-100');
+                setTimeout(() => {
+                    overlay.classList.remove('flex');
+                    overlay.classList.add('hidden');
+                }, 300);
+                sessionStorage.setItem('ncv_popup_seen', 'true');
+            }
+        };
+
+        window.bookFromPopup = function() {
+            closeMarketingPopup();
+            document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.checkAndShowMarketingPopup = function() {
+            if (window.isAdminAuthenticated) return; // No mostrar al admin
+            if (sessionStorage.getItem('ncv_popup_seen') === 'true') return; // Ya lo vio
+
+            const p = window.adminPopupSettings || JSON.parse(localStorage.getItem('ncv_marketing_popup') || 'null');
+            if (!p || !p.isActive || !p.imageUrl) return;
+
+            const overlay = document.getElementById('marketing-popup-overlay');
+            const modal = document.getElementById('marketing-popup-modal');
+            const img = document.getElementById('marketing-popup-img');
+            const title = document.getElementById('marketing-popup-title');
+            const msg = document.getElementById('marketing-popup-message');
+
+            if (overlay && modal && img && title && msg) {
+                img.src = p.imageUrl;
+                title.textContent = p.title || 'Promoción Especial';
+                msg.textContent = p.message || '';
+
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                
+                // Animación de entrada
+                setTimeout(() => {
+                    overlay.classList.add('opacity-100');
+                    modal.classList.add('scale-100');
+                }, 50);
+            }
+        };
+
+        // Iniciar chequeo después de que todo cargue (7500ms = 5 segundos después del primer modal que sale a los 2000ms)
+        setTimeout(checkAndShowMarketingPopup, 7500);
     </script>
 </body>
 </html>
