@@ -4250,8 +4250,7 @@
             const themeSelect = document.getElementById('admin-ticket-theme-select');
             if (themeSelect) themeSelect.value = settings.ticketTheme || 'purple';
 
-            const geminiInput = document.getElementById('admin-gemini-api-key');
-            if (geminiInput) geminiInput.value = localStorage.getItem('ncv_gemini_api_key') || '';
+
             
             if (typeof window.updateDiscountPreview === 'function') {
                 window.updateDiscountPreview();
@@ -4801,152 +4800,7 @@
             }
         }
 
-        window.previewAnalyzerPhoto = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                analyzerAttachedImage = e.target.result;
-                const img = document.getElementById('analyzer-img-preview');
-                const container = document.getElementById('analyzer-img-preview-container');
-                if (img) img.src = e.target.result;
-                if (container) container.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
-        };
-
-        window.analyzeNailPhotoWithAI = function() {
-            const placeholder = document.getElementById('ai-analyzer-placeholder');
-            const loading = document.getElementById('ai-analyzer-loading');
-            const resultBox = document.getElementById('ai-analyzer-result');
-            const textContainer = document.getElementById('ai-analyzer-text-container');
-
-            if (!analyzerAttachedImage) {
-                showToast("Por favor selecciona una foto para analizar primero.", "error");
-                return;
-            }
-
-            placeholder.classList.add('hidden');
-            resultBox.classList.add('hidden');
-            loading.classList.remove('hidden');
-            loading.classList.add('flex');
-
-            setTimeout(() => {
-                loading.classList.add('hidden');
-                loading.classList.remove('flex');
-                resultBox.classList.remove('hidden');
-
-                if (textContainer) {
-                    textContainer.innerHTML = `
-                        <div class="space-y-2">
-                            <span class="bg-brand-600 text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-md">Análisis Visual Gemini AI</span>
-                            <h4 class="text-base font-bold text-white mt-1">Estructura Identificada: Almendra / Soft Gel o Polygel</h4>
-                            <p class="text-brand-100 text-xs leading-relaxed">
-                                • <strong>Técnica Detectada:</strong> Esmaltado semipermanente de alta cobertura con degradé ombré y encapsulado sutil.<br>
-                                • <strong>Servicio Recomendado:</strong> <strong class="text-amber-300">Extensión en Polygel o Soft Gel</strong> + Diseño de Arte Personalizado.
-                            </p>
-                        </div>
-                    `;
-                }
-            }, 1200);
-        };
-
-        window.getStyleRecommendationAI = function() {
-            const outfit = document.getElementById('stylist-outfit').value.trim();
-            const skin = document.getElementById('stylist-skin').value;
-
-            const placeholder = document.getElementById('ai-stylist-placeholder');
-            const loading = document.getElementById('ai-stylist-loading');
-            const resultBox = document.getElementById('ai-stylist-result');
-            const textContainer = document.getElementById('ai-stylist-text-container');
-
-            placeholder.classList.add('hidden');
-            resultBox.classList.add('hidden');
-            loading.classList.remove('hidden');
-            loading.classList.add('flex');
-
-            setTimeout(() => {
-                loading.classList.add('hidden');
-                loading.classList.remove('flex');
-                resultBox.classList.remove('hidden');
-
-                if (textContainer) {
-                    textContainer.innerHTML = `
-                        <div class="space-y-3">
-                            <span class="bg-purple-600 text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-md">Asesoría de Estilo Exclusiva</span>
-                            <h4 class="text-base font-bold text-white">Paleta Recomendada para: "${escapeHtml(outfit)}"</h4>
-                            <p class="text-brand-100 text-xs leading-relaxed">
-                                • <strong>Estilo de Diseño:</strong> Francés fino invertido con detalles orgánicos a mano alzada.<br>
-                                • <strong>Compatibilidad de Piel:</strong> ${escapeHtml(skin)}.<br>
-                                • <strong>Servicio Sugerido:</strong> Manicura Semipermanente o Nivelación de Uña Natural.
-                            </p>
-                        </div>
-                    `;
-                }
-            }, 1000);
-        };
-
-        window.generateNailDesignWithAI = async function() {
-            const occasion = document.getElementById('ai-gen-occasion').value;
-            const shape = document.getElementById('ai-gen-shape').value;
-            const colors = document.getElementById('ai-gen-colors').value.trim();
-            const effects = document.getElementById('ai-gen-effects').value.trim();
-
-            const placeholder = document.getElementById('ai-gen-placeholder');
-            const loading = document.getElementById('ai-gen-loading');
-            const resultBox = document.getElementById('ai-gen-result');
-            const btn = document.getElementById('btn-generate-ai');
-
-            placeholder.classList.add('hidden');
-            resultBox.classList.add('hidden');
-            loading.classList.remove('hidden');
-            loading.classList.add('flex');
-            btn.disabled = true;
-
-            const promptText = `luxury nail salon artwork, ${shape} shape nails, ${colors}, ${effects}, ${occasion}, elegant macro photo`;
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random() * 99999)}`;
-
-            const img = new Image();
-            img.onload = function() {
-                document.getElementById('ai-generated-img').src = imageUrl;
-                document.getElementById('ai-gen-title').textContent = `${shape} - ${occasion}`;
-                
-                currentAiAttachment = {
-                    title: `${shape} (${occasion})`,
-                    details: `${colors}, ${effects}`,
-                    imageUrl: imageUrl
-                };
-
-                loading.classList.add('hidden');
-                loading.classList.remove('flex');
-                resultBox.classList.remove('hidden');
-                btn.disabled = false;
-            };
-            img.onerror = function() {
-                showToast("No se pudo generar la imagen AI. Intenta nuevamente.", "error");
-                loading.classList.add('hidden');
-                loading.classList.remove('flex');
-                placeholder.classList.remove('hidden');
-                btn.disabled = false;
-            };
-            img.src = imageUrl;
-        };
-
-        window.useAiDesignForBooking = function() {
-            if (!currentAiAttachment) return;
-            document.getElementById('form-notes').value = `[Diseño AI Solicitado]: ${currentAiAttachment.title} (${currentAiAttachment.details})`;
-            
-            bookingAttachedImage = {
-                type: 'ai',
-                src: currentAiAttachment.imageUrl,
-                fileName: `Diseno_AI_${currentAiAttachment.title.replace(/[^a-zA-Z0-9]/g, '_')}.png`
-            };
-            updateBookingImagePreview();
-
-            document.getElementById('reservas').scrollIntoView({ behavior: 'smooth' });
-            showToast("¡Diseño AI adjuntado con éxito a la reserva!");
-        };
 
         window.handleUserRegister = async function(event) {
             event.preventDefault();
@@ -5431,7 +5285,7 @@
 
             let imageInfo = '';
             if (bookingAttachedImage) {
-                imageInfo = `\n🖼️ *Imagen/Diseño Adjunto:* ${bookingAttachedImage.fileName} (${bookingAttachedImage.type === 'ai' ? 'Generado con IA' : 'Archivo .jpg'})\n📌 *Nota:* Te adjunto la foto del diseño/comprobante a continuación en este chat.`;
+                imageInfo = `\n🖼️ *Referencia:* ${bookingAttachedImage.fileName}`;
             }
 
             const cleanPhone = '573192395653';
@@ -5449,7 +5303,7 @@
                 imageInfo +
                 (notes ? `\n📝 *Notas:* ${notes}\n` : '\n') +
                 `\nHola Val! Adjunto el comprobante del abono de $10.000 COP a la llave 0090984300` +
-                (bookingAttachedImage ? ` y la foto del diseño (${bookingAttachedImage.fileName})` : '') +
+                (bookingAttachedImage ? ` y la foto de referencia` : '') +
                 ` para confirmar mi cita.`;
 
             pendingWhatsAppUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(pendingWhatsAppMessage)}`;
@@ -5926,7 +5780,7 @@
                 if (previewImg) previewImg.src = bookingAttachedImage.src;
                 if (fileNameSpan) fileNameSpan.textContent = bookingAttachedImage.fileName;
                 if (displayName) displayName.textContent = bookingAttachedImage.fileName;
-                if (badge) badge.textContent = bookingAttachedImage.type === 'ai' ? '✨ Creado con IA' : '📷 Foto .jpg / .png';
+                if (badge) badge.textContent = '🖼️ Foto .jpg / .png';
                 if (container) container.classList.remove('hidden');
             } else {
                 if (container) container.classList.add('hidden');
@@ -6048,6 +5902,7 @@
                 const previewImg = document.getElementById('gallery-photo-preview');
                 const container = document.getElementById('gallery-preview-container');
                 if (previewImg) previewImg.src = e.target.result;
+                if (container) container.classList.add('hidden');
                 if (container) container.classList.remove('hidden');
             };
             reader.readAsDataURL(file);
@@ -6613,203 +6468,9 @@
             }
         };
 
-        // MÓDULO ASISTENTE IA (GOOGLE AI STUDIO - GEMINI 1.5 FLASH)
-        const NAILSCONVAL_SYSTEM_PROMPT = `
-Eres 'Val IA', la asesora virtual oficial y experta máxima en belleza de uñas de 'NailsConVal' en Tuluá, Valle del Cauca (Carrera 40 #29-24, Barrio Panamericano).
 
-Tus reglas principales de conversación:
-1. Responde de forma libre, fluida, natural, profesional, cálida y entusiasta a CUALQUIER pregunta que te haga la clienta.
-2. Evita respuestas genéricas o repetitivas; adáptate exactamente a lo que la clienta pregunte (consejos de uñas, formas de uñas según su tipo de mano, tonos en tendencia, cuidados, comparativa entre Kapping, Polygel, Acrílico y Semipermanente).
-3. Si la clienta pregunta por servicios o precios:
-   - Manicura tradicional: $22.000 COP (1.5h)
-   - Manicura semipermanente: $45.000 COP (2h)
-   - Nivelación / Kapping Gel: $70.000 COP (2h)
-   - Extensión Builder Gel: $75.000 COP (2h)
-   - Extensión Polygel: $95.000 COP (3h)
-   - Extensión Acrílico: $110.000 COP (3h)
-   - Soft Gel: $85.000 COP (2h)
-   - Press On: $65.000 COP (1h)
-   - Pedicura básica: $22.000 COP (1h)
-   - Pedicura Spa: $45.000 COP (2h)
-4. Proceso de Citas: Reserva en la web + Abono obligatorio de $10.000 COP a la Llave Nequi 0090984300.
-5. Ubicación: Carrera 40 #29-24, Barrio Panamericano, Tuluá. Horario: Lunes a Sábado 8:00 AM - 7:00 PM con cita previa.
-6. Usa un tono elegante, cercano, profesional y emojis delicados (✨, 💅, 💖, 🌸, 👑).
-`;
 
-        window.aiChatHistory = [];
 
-        window.toggleAiAssistantDrawer = function() {
-            const drawer = document.getElementById('ai-assistant-drawer');
-            if (!drawer) return;
-            const isHidden = drawer.classList.contains('hidden');
-            if (isHidden) {
-                drawer.classList.remove('hidden');
-                setTimeout(() => {
-                    drawer.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
-                }, 10);
-            } else {
-                drawer.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
-                setTimeout(() => {
-                    drawer.classList.add('hidden');
-                }, 300);
-            }
-        };
-
-        window.sendQuickAiQuestion = function(text) {
-            const input = document.getElementById('ai-chat-input');
-            if (input) {
-                input.value = text;
-                window.handleAiChatSubmit(new Event('submit'));
-            }
-        };
-
-        function generateSmartLocalNailsAiResponse(userText) {
-            const q = (userText || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-            if (q.includes('kapping') || q.includes('nivelacion') || q.includes('nivelar') || q.includes('debiles') || q.includes('rompen')) {
-                return `✨ **El Kapping Gel (Nivelación)** es nuestra técnica estrella en **NailsConVal** para fortalecer tus uñas naturales. 💅\n\nTiene un valor de **$70.000 COP** (duración approx. 2 horas). Aplicamos una base gel estructurada que protege tu uña contra quiebres, permitiendo que crezcan sanas, fuertes y con un acabado impecable.\n\n¿Te gustaría que agendemos tu sesión en el calendario de la página?`;
-            }
-
-            if (q.includes('precio') || q.includes('precios') || q.includes('cuanto cuesta') || q.includes('tarifa') || q.includes('valor') || q.includes('costo')) {
-                return `💎 **Menú de Servicios Principales en NailsConVal:**\n\n• **Manicura Semipermanente:** $45.000 COP (2 hrs)\n• **Nivelación / Kapping Gel:** $70.000 COP (2 hrs)\n• **Extensión Builder Gel:** $75.000 COP (2 hrs)\n• **Extensión en Polygel:** $95.000 COP (3 hrs)\n• **Extensión en Acrílico:** $110.000 COP (3 hrs)\n• **Soft Gel:** $85.000 COP (2 hrs)\n• **Press On:** $65.000 COP (1 hr)\n• **Pedicura Spa:** $45.000 COP (2 hrs)\n\n✨ Todas nuestras técnicas incluyen bioseguridad, preparación profesional y acabado brillante de larga duración. ¿Cuál te llama más la atención?`;
-            }
-
-            if (q.includes('agendar') || q.includes('reserva') || q.includes('cita') || q.includes('turno') || q.includes('separar')) {
-                return `📅 **¡Es súper fácil agendar tu cita en NailsConVal!**\n\n1️⃣ Selecciona la fecha y hora disponible directamente en nuestro **Calendario interactivo**.\n2️⃣ Realiza un abono de **$10.000 COP** a la Llave Nequi: \`0090984300\` (se descuenta del valor total).\n3️⃣ Presiona el botón **'Agendar por WhatsApp'** enviando el comprobante.\n\n¡Te esperamos en Carrera 40 #29-24, Barrio Panamericano en Tuluá! ✨💖`;
-            }
-
-            if (q.includes('donde') || q.includes('ubicacion') || q.includes('direccion') || q.includes('horario') || q.includes('tulua')) {
-                return `📍 **Ubicación & Horarios de Atención - NailsConVal:**\n\n🏢 **Dirección:** Carrera 40 #29-24, Barrio Panamericano, Tuluá, Valle del Cauca.\n⏰ **Horario:** Lunes a Sábado de 8:00 AM a 7:00 PM (con cita previa).\n\n¡Estaremos encantadas de recibirte en nuestro espacio diseñado para tu consentimiento y confort! 💅✨`;
-            }
-
-            if (q.includes('polygel') || q.includes('acrilico') || q.includes('extensiones') || q.includes('largas')) {
-                return `👑 **Extensiones Profesionales en NailsConVal:**\n\n• **Polygel ($95.000 COP):** Combina la resistencia del acrílico con la flexibilidad del gel. Es ligero, inoloro y súper natural.\n• **Acrílico ($110.000 COP):** Máxima durabilidad y resistencia estructural para uñas muy largas o de diseño de alto impacto.\n• **Soft Gel ($85.000 COP):** Cobertura completa pre-moldeada ultrarrápida y ligera.\n\n¿Tienes en mente alguna forma en especial como almendra, coffin o cuadrada? ✨`;
-            }
-
-            if (q.includes('cuidado') || q.includes('durar') || q.includes('mantenimiento') || q.includes('tip')) {
-                return `💖 **Secretos de Val para que tus uñas duren más de 21 días impecables:**\n\n1️⃣ Aplica aceite de cutícula diariamente para mantener las uñas hidratadas y flexibles.\n2️⃣ Usa guantes al lavar platos o utilizar productos químicos de aseo.\n3️⃣ ¡No uses tus uñas como herramientas para abrir latas o raspar!\n4️⃣ Respeta las fechas de retoque (cada 20 a 25 días).\n\n¿Tienes alguna duda sobre el retiro o mantenimiento de tus uñas? 🌸`;
-            }
-
-            return `🌸 **¡Hola reina! Soy Val IA, tu asesora experta en belleza de uñas.**\n\nPuedo resolver todas tus dudas sobre **Kapping Gel, Semipermanente, Polygel, Acrílico, precios, consejos de cuidado o cómo agendar tu cita** en NailsConVal Tuluá.\n\n¿Cuéntame, qué técnica te gustaría explorar hoy o cómo te puedo asesorar para que tus manos luzcan increíbles? ✨💅`;
-        }
-
-        window.handleAiChatSubmit = async function(event) {
-            if (event) event.preventDefault();
-            const input = document.getElementById('ai-chat-input');
-            const messagesContainer = document.getElementById('ai-chat-messages');
-            const sendBtn = document.getElementById('ai-chat-send-btn');
-
-            if (!input || !messagesContainer) return;
-            const userText = input.value.trim();
-            if (!userText) return;
-
-            // Render user bubble
-            const userBubble = document.createElement('div');
-            userBubble.className = 'bg-brand-900 border border-brand-700/60 text-white p-3 rounded-2xl rounded-tr-xs max-w-[85%] ml-auto shadow-sm';
-            userBubble.innerHTML = `<p class="leading-relaxed">${escapeHtml(userText)}</p>`;
-            messagesContainer.appendChild(userBubble);
-            input.value = '';
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            // Render loading bubble
-            const loadingBubble = document.createElement('div');
-            loadingBubble.id = 'ai-loading-bubble';
-            loadingBubble.className = 'bg-purple-950/60 border border-purple-500/30 text-purple-200 p-3 rounded-2xl rounded-tl-xs max-w-[85%] space-y-1 shadow-sm flex items-center gap-2';
-            loadingBubble.innerHTML = `
-                <i class="fa-solid fa-spinner fa-spin text-amber-400"></i>
-                <span class="text-[11px] font-semibold">Val IA está redactando la respuesta...</span>
-            `;
-            messagesContainer.appendChild(loadingBubble);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            if (sendBtn) sendBtn.disabled = true;
-
-            const apiKey = localStorage.getItem('ncv_gemini_api_key') || window.geminiApiKey || '';
-            const historyFormatted = window.aiChatHistory.slice(-6).map(h => `${h.role === 'user' ? 'Cliente' : 'Val IA'}: ${h.text}`).join('\n');
-            const fullPrompt = `${NAILSCONVAL_SYSTEM_PROMPT}\n\nHISTORIAL RECIENTE:\n${historyFormatted}\n\nCliente dice: ${userText}\n\nResponde como Val IA:`;
-
-            try {
-                let aiResponseText = '';
-
-                if (apiKey) {
-                    const modelsToTry = [
-                        'gemini-1.5-flash-latest',
-                        'gemini-1.5-flash',
-                        'gemini-2.0-flash-exp',
-                        'gemini-1.5-pro-latest',
-                        'gemini-1.5-pro',
-                        'gemini-1.0-pro'
-                    ];
-
-                    for (const modelName of modelsToTry) {
-                        try {
-                            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
-                            const response = await fetch(url, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    contents: [{ parts: [{ text: fullPrompt }] }],
-                                    generationConfig: { temperature: 0.75, maxOutputTokens: 700 }
-                                })
-                            });
-
-                            if (response.ok) {
-                                const data = await response.json();
-                                aiResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                                if (aiResponseText) break;
-                            }
-                        } catch (errM) {}
-                    }
-                }
-
-                if (!aiResponseText) {
-                    aiResponseText = generateSmartLocalNailsAiResponse(userText);
-                }
-
-                window.aiChatHistory.push({ role: 'user', text: userText });
-                window.aiChatHistory.push({ role: 'model', text: aiResponseText });
-
-                const loadingEl = document.getElementById('ai-loading-bubble');
-                if (loadingEl) loadingEl.remove();
-
-                const aiBubble = document.createElement('div');
-                aiBubble.className = 'bg-purple-950/60 border border-purple-500/30 text-purple-100 p-3.5 rounded-2xl rounded-tl-xs max-w-[88%] space-y-1.5 shadow-sm';
-                aiBubble.innerHTML = `<div class="leading-relaxed prose prose-invert text-xs">${formatMarkdownToHtml(aiResponseText)}</div>`;
-                messagesContainer.appendChild(aiBubble);
-
-            } catch (err) {
-                console.error("Error al procesar IA:", err);
-                const loadingEl = document.getElementById('ai-loading-bubble');
-                if (loadingEl) loadingEl.remove();
-
-                const fallbackText = generateSmartLocalNailsAiResponse(userText);
-                const aiBubble = document.createElement('div');
-                aiBubble.className = 'bg-purple-950/60 border border-purple-500/30 text-purple-100 p-3.5 rounded-2xl rounded-tl-xs max-w-[88%] space-y-1.5 shadow-sm';
-                aiBubble.innerHTML = `<div class="leading-relaxed text-xs">${formatMarkdownToHtml(fallbackText)}</div>`;
-                messagesContainer.appendChild(aiBubble);
-            } finally {
-                if (sendBtn) sendBtn.disabled = false;
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        };
-
-        function formatMarkdownToHtml(text) {
-            if (!text) return '';
-            return escapeHtml(text)
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/\n/g, '<br>');
-        }
-
-        window.saveGeminiApiKey = function(event) {
-            if (event) event.preventDefault();
-            const input = document.getElementById('admin-gemini-api-key');
-            if (!input) return;
-            const key = input.value.trim();
-            window.geminiApiKey = key;
-            localStorage.setItem('ncv_gemini_api_key', key);
-            showToast(key ? "🤖 API Key de Google AI Studio (Gemini 1.5 Flash) guardada con éxito." : "API Key borrada.");
-        };
 
         // \u2500\u2500 Men\u00fa "M\u00e1s" \u2014 toggle por clic (funciona en tablets t\u00e1ctiles donde hover no opera) \u2500\u2500
         window.toggleMasMenu = function() {
