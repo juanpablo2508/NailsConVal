@@ -1800,11 +1800,18 @@
                             <i class="fa-solid fa-bullseye text-amber-400 text-sm"></i>
                             <h4 class="font-bold text-white text-sm">Meta de Ingresos del Período</h4>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] text-gray-400">Meta ($COP):</span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[11px] text-gray-400">Tipo:</span>
+                            <select id="admin-goal-type" class="bg-gray-950 border border-gray-700 text-amber-300 font-bold text-xs px-2 py-1.5 rounded-lg focus:outline-none" onchange="updateGoalProgress()">
+                                <option value="monthly">Mensual</option>
+                                <option value="annual">Anual</option>
+                            </select>
+                            <span class="text-[11px] text-gray-400 ml-2">Meta ($):</span>
                             <input type="number" id="admin-income-goal" placeholder="Ej: 500000"
-                                class="bg-gray-950 border border-gray-700 text-amber-300 font-bold text-xs px-3 py-1.5 rounded-xl w-36 focus:outline-none focus:border-amber-400"
-                                oninput="updateGoalProgress()">
+                                class="bg-gray-950 border border-gray-700 text-amber-300 font-bold text-xs px-3 py-1.5 rounded-xl w-32 focus:outline-none focus:border-amber-400">
+                            <button onclick="saveAdminGoal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg shadow transition-all cursor-pointer">
+                                Guardar
+                            </button>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -1813,7 +1820,10 @@
                         </div>
                         <span id="admin-goal-progress-label" class="text-xs font-extrabold text-emerald-400 font-mono w-14 text-right">0%</span>
                     </div>
-                    <p id="admin-goal-progress-detail" class="text-[10px] text-gray-500 mt-1.5">Ingresa una meta para ver el progreso</p>
+                    <p id="admin-goal-progress-detail" class="text-[10px] text-gray-500 mt-1.5 flex justify-between">
+                        <span id="admin-goal-text">Ingresa una meta y presiona Guardar.</span>
+                        <span id="admin-goal-accumulated" class="font-bold text-emerald-400"></span>
+                    </p>
                 </div>
 
                 <!-- GRÁFICAS: Estado de Citas (apilada) + Ingresos por Mes -->
@@ -2934,6 +2944,10 @@
             localApps.push(newWalkIn);
             localStorage.setItem('ncv_appointments', JSON.stringify(localApps));
 
+            if (window.allAppointmentsList) {
+                window.allAppointmentsList.push(newWalkIn);
+            }
+
             if (window.dbInstance && window.firestoreUtils) {
                 try {
                     const { collection, addDoc } = window.firestoreUtils;
@@ -3488,6 +3502,86 @@
             showToast(`Turno ${timeSlot} en ${dateStr} actualizado.`);
         };
 
+        window.saveAdminGoal = function() {
+            const goalInput = document.getElementById('admin-income-goal');
+            const typeInput = document.getElementById('admin-goal-type');
+            if (!goalInput || !typeInput) return;
+            
+            const goalVal = parseInt(goalInput.value, 10);
+            if (!isNaN(goalVal) && goalVal > 0) {
+                localStorage.setItem('ncv_income_goal', goalVal.toString());
+                localStorage.setItem('ncv_income_goal_type', typeInput.value);
+                showToast("✅ Meta de ingresos guardada exitosamente.");
+                updateGoalProgress();
+            } else {
+                showToast("❌ Ingresa un valor válido para la meta.", "error");
+            }
+        };
+
+        window.updateGoalProgress = function() {
+            const goalInput = document.getElementById('admin-income-goal');
+            const typeInput = document.getElementById('admin-goal-type');
+            if (!goalInput || !typeInput) return;
+            
+            const goalVal = parseInt(goalInput.value, 10);
+            const progressEl = document.getElementById('admin-goal-progress-bar');
+            const labelEl = document.getElementById('admin-goal-progress-label');
+            const textEl = document.getElementById('admin-goal-text');
+            const accEl = document.getElementById('admin-goal-accumulated');
+            
+            if (isNaN(goalVal) || goalVal <= 0) {
+                if(progressEl) progressEl.style.width = '0%';
+                if(labelEl) labelEl.textContent = '0%';
+                if(textEl) textEl.textContent = 'Ingresa una meta y presiona Guardar.';
+                if(accEl) accEl.textContent = '';
+                return;
+            }
+
+            let allApps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+            
+            let accumulatedIncome = 0;
+            const isMonthly = typeInput.value === 'monthly';
+            
+            allApps.forEach(app => {
+                if (app.status === 'completada') {
+                    const d = getAppointmentDateObject(app);
+                    let include = false;
+                    if (isMonthly && d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+                        include = true;
+                    } else if (!isMonthly && d.getFullYear() === currentYear) {
+                        include = true;
+                    }
+                    if (include) {
+                        let p = 0;
+                        if (app.service) {
+                            const match = app.service.match(/\$([\d.]+)\s*COP/);
+                            if (match) p = parseInt(match[1].replace(/\./g, ''), 10);
+                        }
+                        accumulatedIncome += p;
+                    }
+                }
+            });
+
+            const currentIncome = accumulatedIncome;
+            const rawPercent = (currentIncome / goalVal) * 100;
+            const percent = Math.min(rawPercent, 100);
+            
+            if(progressEl) progressEl.style.width = percent + '%';
+            if(labelEl) labelEl.textContent = Math.floor(rawPercent) + '%';
+            if(textEl) {
+                if (rawPercent >= 100) {
+                    textEl.innerHTML = `🎉 ¡Felicidades! Meta ${isMonthly ? 'mensual' : 'anual'} superada.`;
+                } else {
+                    const diff = goalVal - currentIncome;
+                    textEl.innerHTML = `Faltan <strong>$${diff.toLocaleString('es-CO')}</strong> para la meta ${isMonthly ? 'mensual' : 'anual'}.`;
+                }
+            }
+            if(accEl) accEl.textContent = `$${currentIncome.toLocaleString('es-CO')} / $${goalVal.toLocaleString('es-CO')}`;
+        };
+
         function getAppointmentDateObject(app) {
             if (!app) return new Date();
             if (app.appointmentDateIso) {
@@ -3509,38 +3603,25 @@
         }
 
 
-        window.updateGoalProgress = function() {
-            const goalInput = document.getElementById('admin-income-goal');
-            if (!goalInput) return;
-            const goalVal = parseInt(goalInput.value, 10);
-            const progressEl = document.getElementById('admin-goal-progress-bar');
-            const labelEl = document.getElementById('admin-goal-progress-label');
-            const detailEl = document.getElementById('admin-goal-progress-detail');
-            
-            const incomeText = document.getElementById('metric-total-income')?.textContent || '$0';
-            const currentIncome = parseInt(incomeText.replace(/[^0-9]/g, ''), 10) || 0;
-            
-            if (isNaN(goalVal) || goalVal <= 0) {
-                if(progressEl) progressEl.style.width = '0%';
-                if(labelEl) labelEl.textContent = '0%';
-                if(detailEl) detailEl.textContent = 'Ingresa una meta válida para ver el progreso.';
-                return;
-            }
-            
-            let pct = (currentIncome / goalVal) * 100;
-            let displayPct = pct > 100 ? 100 : pct;
-            
-            if (progressEl) progressEl.style.width = displayPct + '%';
-            if (labelEl) labelEl.textContent = Math.round(pct) + '%';
-            if (detailEl) {
-                detailEl.textContent = `Logrado: $${currentIncome.toLocaleString('es-CO')} de $${goalVal.toLocaleString('es-CO')} (${(100 - displayPct).toFixed(1)}% restante)`;
-            }
-        };
-
         window.renderAdminCharts = function() {
             const allApps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
             const periodSelect = document.getElementById('admin-financial-period-select');
             const periodVal = periodSelect ? periodSelect.value : 'this_month';
+            
+            const goalInput = document.getElementById('admin-income-goal');
+            const typeInput = document.getElementById('admin-goal-type');
+            const savedGoal = localStorage.getItem('ncv_income_goal');
+            const savedType = localStorage.getItem('ncv_income_goal_type');
+            
+            if (typeInput && savedType) {
+                typeInput.value = savedType;
+            }
+            if (goalInput && savedGoal && !goalInput.value) {
+                goalInput.value = savedGoal;
+            }
+            if (typeof updateGoalProgress === 'function') {
+                updateGoalProgress();
+            }
 
             const now = new Date();
             const currentYear = now.getFullYear();
@@ -3606,7 +3687,11 @@
                 }
             });
 
-            todayApps.sort((a,b) => getAppointmentDateObject(a) - getAppointmentDateObject(b));
+            todayApps.sort((a,b) => {
+                const dateA = parseAppointmentDateTime(a.dateKey || a.appointmentDateIso, a.time);
+                const dateB = parseAppointmentDateTime(b.dateKey || b.appointmentDateIso, b.time);
+                return dateA - dateB;
+            });
             for(let app of todayApps) {
                 if (app.status !== 'completada' && app.status !== 'cancelada') {
                     nextApp = app;
@@ -4866,7 +4951,7 @@
         window.handleUserRegister = async function(event) {
             event.preventDefault();
             const name = document.getElementById('reg-name').value.trim();
-            const phone = document.getElementById('reg-phone').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim().replace(/\s+/g, '');
             const email = document.getElementById('reg-email').value.trim();
             const birthdate = document.getElementById('reg-birthdate').value;
             const password = document.getElementById('reg-password').value.trim();
@@ -4932,7 +5017,7 @@
 
         window.handleUserLogin = async function(event) {
             event.preventDefault();
-            const identifier = document.getElementById('login-identifier').value.trim();
+            const identifier = document.getElementById('login-identifier').value.trim().replace(/\s+/g, '');
             const password = document.getElementById('login-password').value.trim();
 
             if (!identifier || !password) {
@@ -4955,11 +5040,14 @@
             let matchedUser = null;
             try {
                 const users = JSON.parse(localStorage.getItem('ncv_users') || '[]');
-                matchedUser = users.find(acc => 
-                    (acc.phone === identifier || acc.email.toLowerCase() === identifier.toLowerCase()) && 
-                    acc.password === password
-                );
-            } catch (e) {}
+                matchedUser = users.find(acc => {
+                    const phoneMatch = acc.phone === identifier;
+                    const emailMatch = acc.email && acc.email.toLowerCase() === identifier.toLowerCase();
+                    return (phoneMatch || emailMatch) && acc.password === password;
+                });
+            } catch (e) {
+                console.error("Login find error:", e);
+            }
 
             if (!matchedUser && window.dbInstance && window.firestoreUtils) {
                 try {
@@ -5406,6 +5494,10 @@
             const localApps = JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
             localApps.push(pendingAppointmentData);
             localStorage.setItem('ncv_appointments', JSON.stringify(localApps));
+
+            if (window.allAppointmentsList) {
+                window.allAppointmentsList.push(pendingAppointmentData);
+            }
 
             if (window.dbInstance && window.firestoreUtils) {
                 try {
