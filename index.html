@@ -3213,59 +3213,102 @@
         window.renderAdminBirthdays = function() {
             const container = document.getElementById('admin-birthday-container');
             const listEl = document.getElementById('admin-birthday-list');
-            if (!container || !listEl) return;
+            const tbodyEl = document.getElementById('admin-birthdays-tbody');
+            if (!container && !tbodyEl) return;
 
             const allApps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
-            const currentMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
+            const allUsers = JSON.parse(localStorage.getItem('ncv_users') || '[]');
             
-            const birthdayClients = new Map();
-            allApps.forEach(app => {
-                if (app.birthday) {
-                    const parts = app.birthday.split('-');
-                    if (parts.length >= 2) {
-                        const bMonth = parts[1];
-                        if (bMonth === currentMonthStr && !birthdayClients.has(app.phone)) {
-                            birthdayClients.set(app.phone, {
-                                name: app.name || 'Clienta',
-                                phone: app.phone,
-                                birthday: app.birthday,
-                                day: parts[2] || '?'
-                            });
-                        }
+            const selectedMonthEl = document.getElementById('admin-birthday-month');
+            const widgetMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
+            const tableMonthStr = selectedMonthEl ? String(selectedMonthEl.value).padStart(2, '0') : widgetMonthStr;
+            
+            const widgetClients = new Map();
+            const tableClients = new Map();
+
+            const processClient = (phone, name, dateString) => {
+                if (!dateString) return;
+                const parts = dateString.split('-');
+                if (parts.length >= 3) {
+                    const bMonth = parts[1];
+                    const clientData = {
+                        name: name || 'Clienta',
+                        phone: phone,
+                        birthday: dateString,
+                        day: parts[2]
+                    };
+                    if (bMonth === widgetMonthStr) {
+                        widgetClients.set(phone, clientData);
+                    }
+                    if (bMonth === tableMonthStr) {
+                        tableClients.set(phone, clientData);
                     }
                 }
-            });
+            };
 
-            if (birthdayClients.size === 0) {
-                container.classList.add('hidden');
-                return;
+            allUsers.forEach(u => processClient(u.phone, u.name, u.birthdate));
+            allApps.forEach(app => processClient(app.phone, app.name, app.birthday));
+
+            const widgetClientsArr = Array.from(widgetClients.values()).sort((a,b) => parseInt(a.day) - parseInt(b.day));
+            const tableClientsArr = Array.from(tableClients.values()).sort((a,b) => parseInt(a.day) - parseInt(b.day));
+
+            if (container && listEl) {
+                if (widgetClientsArr.length === 0) {
+                    container.classList.add('hidden');
+                } else {
+                    container.classList.remove('hidden');
+                    listEl.innerHTML = '';
+                    widgetClientsArr.forEach(client => {
+                        const card = document.createElement('div');
+                        card.className = "bg-gray-800/80 rounded-2xl p-4 border border-fuchsia-500/20 shadow-md flex flex-col justify-between";
+                        const firstName = escapeHtml(client.name.split(' ')[0]);
+                        card.innerHTML = `
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-full bg-fuchsia-900/50 flex items-center justify-center text-fuchsia-400 font-bold text-lg border border-fuchsia-500/30">
+                                    ${escapeHtml(client.day)}
+                                </div>
+                                <div class="overflow-hidden">
+                                    <span class="block font-bold text-white text-sm truncate">${firstName}</span>
+                                    <span class="text-xs text-gray-400 font-mono">${escapeHtml(client.phone)}</span>
+                                </div>
+                            </div>
+                            <button onclick="sendBirthdayWhatsApp('${firstName}', '${escapeHtml(client.phone)}')" class="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-fuchsia-900/20">
+                                <i class="fa-brands fa-whatsapp text-base"></i> Enviar Regalo 50%
+                            </button>
+                        `;
+                        listEl.appendChild(card);
+                    });
+                }
             }
 
-            container.classList.remove('hidden');
-            listEl.innerHTML = '';
-            
-            const clientsArr = Array.from(birthdayClients.values()).sort((a,b) => parseInt(a.day) - parseInt(b.day));
-
-            clientsArr.forEach(client => {
-                const card = document.createElement('div');
-                card.className = "bg-gray-800/80 rounded-2xl p-4 border border-fuchsia-500/20 shadow-md flex flex-col justify-between";
-                const firstName = escapeHtml(client.name.split(' ')[0]);
-                card.innerHTML = `
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-full bg-fuchsia-900/50 flex items-center justify-center text-fuchsia-400 font-bold text-lg border border-fuchsia-500/30">
-                            ${client.day}
-                        </div>
-                        <div class="overflow-hidden">
-                            <span class="block font-bold text-white text-sm truncate">${firstName}</span>
-                            <span class="text-xs text-gray-400 font-mono">${escapeHtml(client.phone)}</span>
-                        </div>
-                    </div>
-                    <button onclick="sendBirthdayWhatsApp('${firstName}', '${client.phone}')" class="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-fuchsia-900/20">
-                        <i class="fa-brands fa-whatsapp text-base"></i> Enviar Regalo 50%
-                    </button>
-                `;
-                listEl.appendChild(card);
-            });
+            if (tbodyEl) {
+                tbodyEl.innerHTML = '';
+                if (tableClientsArr.length === 0) {
+                    tbodyEl.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-500 italic text-sm">No hay cumpleaños registrados para este mes.</td></tr>`;
+                } else {
+                    tableClientsArr.forEach(client => {
+                        const tr = document.createElement('tr');
+                        const firstName = escapeHtml(client.name.split(' ')[0]);
+                        tr.innerHTML = `
+                            <td class="p-3">
+                                <div class="font-bold text-white text-sm">${escapeHtml(client.name)}</div>
+                            </td>
+                            <td class="p-3 text-fuchsia-400 font-bold">
+                                Día ${escapeHtml(client.day)}
+                            </td>
+                            <td class="p-3 text-gray-400 font-mono text-xs">
+                                ${escapeHtml(client.phone)}
+                            </td>
+                            <td class="p-3 text-right">
+                                <button onclick="sendBirthdayWhatsApp('${firstName}', '${escapeHtml(client.phone)}')" class="bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500 hover:text-white border border-fuchsia-500/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1">
+                                    <i class="fa-brands fa-whatsapp"></i> Enviar Bono
+                                </button>
+                            </td>
+                        `;
+                        tbodyEl.appendChild(tr);
+                    });
+                }
+            }
         };
 
         window.renderAdminCancellationAlerts = function() {
@@ -3391,6 +3434,7 @@
             }
             if (tabName === 'services') renderAdminServicesEditor();
             if (tabName === 'gallery') renderAdminGalleryEditor();
+            if (tabName === 'birthdays') renderAdminBirthdays();
         };
 
 
