@@ -6550,29 +6550,29 @@
             if (!container) return;
 
             let posts = JSON.parse(localStorage.getItem('ncv_community_posts') || 'null');
-            if (!posts || posts.length === 0) {
-                posts = [
-                    {
-                        id: 'seed_post_1',
-                        name: 'ValenNails',
-                        message: '¡Bienvenidas al muro interactivo chicas! Aquí pueden compartir fotos .jpg de los diseños que quieran realizarse o dejar sus comentarios ✨💅',
-                        photoUrl: 'https://i.ibb.co/wZ99L0sF/1.jpg',
-                        likes: 12,
-                        createdAt: 'Publicación oficial'
-                    },
-                    {
-                        id: 'seed_post_2',
-                        name: 'Mariana G.',
-                        message: 'Me encantaron mis uñas en tono pastel de la semana pasada, ¡el terminado con kapping es de otro mundo! Super recomendada Val 💕',
-                        photoUrl: 'https://i.ibb.co/pvVYRKM0/6.jpg',
-                        likes: 8,
-                        createdAt: 'Hace 2 días'
-                    }
-                ];
+            if (!posts) {
+                posts = [];
                 localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
+            } else {
+                const initialLen = posts.length;
+                posts = posts.filter(p => !p.id || !p.id.startsWith('seed_post_'));
+                if (posts.length !== initialLen) {
+                    localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
+                }
             }
 
             container.innerHTML = '';
+            
+            if (posts.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-3xl border border-brand-100 text-center shadow-sm">
+                        <i class="fa-regular fa-comments text-4xl text-brand-300 mb-3"></i>
+                        <p class="text-gray-500 text-sm font-medium">Aún no hay publicaciones en el muro. ¡Sé la primera en escribir algo!</p>
+                    </div>
+                `;
+                return;
+            }
+
             posts.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'bg-white p-5 rounded-3xl border border-brand-200/80 shadow-md space-y-3';
