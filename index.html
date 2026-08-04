@@ -2568,7 +2568,7 @@
     <script type="module">
         import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, addDoc, getDoc, collection, onSnapshot, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, addDoc, getDoc, collection, onSnapshot, getDocs, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const savedFbConfig = JSON.parse(localStorage.getItem('ncv_firebase_config') || 'null');
 
@@ -2590,7 +2590,7 @@
             window.dbInstance = db;
             window.authInstance = auth;
             window.firebaseAuthUtils = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
-            window.firestoreUtils = { doc, setDoc, addDoc, getDoc, collection, query, where, getDocs };
+            window.firestoreUtils = { doc, setDoc, addDoc, getDoc, collection, query, where, getDocs, deleteDoc };
 
             onAuthStateChanged(auth, (user) => {
                 if (user && !user.isAnonymous && user.email) {
@@ -6407,6 +6407,12 @@
             if (newMsg !== null && newMsg.trim() !== '') {
                 posts[idx].message = newMsg.trim();
                 localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
+                if (window.dbInstance && window.firestoreUtils) {
+                    try {
+                        const { doc, setDoc } = window.firestoreUtils;
+                        setDoc(doc(window.dbInstance, 'community_posts', postId), { message: newMsg.trim() }, { merge: true });
+                    } catch(e){}
+                }
                 renderCommunityFeed();
                 showToast("✏️ Publicación de la comunidad editada con éxito.");
             }
@@ -6420,6 +6426,12 @@
             if (confirm(`¿Estás segura de eliminar la publicación de ${posts[idx].name}?`)) {
                 posts.splice(idx, 1);
                 localStorage.setItem('ncv_community_posts', JSON.stringify(posts));
+                if (window.dbInstance && window.firestoreUtils) {
+                    try {
+                        const { doc, deleteDoc } = window.firestoreUtils;
+                        deleteDoc(doc(window.dbInstance, 'community_posts', postId));
+                    } catch(e){}
+                }
                 renderCommunityFeed();
                 showToast("🗑️ Publicación eliminada de la comunidad.");
             }
@@ -6436,6 +6448,12 @@
             if (newComment !== null && newComment.trim() !== '') {
                 reviews[idx].comment = newComment.trim();
                 localStorage.setItem('ncv_client_reviews', JSON.stringify(reviews));
+                if (window.dbInstance && window.firestoreUtils) {
+                    try {
+                        const { doc, setDoc } = window.firestoreUtils;
+                        setDoc(doc(window.dbInstance, 'reviews', reviewId), { comment: newComment.trim() }, { merge: true });
+                    } catch(e){}
+                }
                 renderReviewsList();
                 showToast("✏️ Reseña editada con éxito.");
             }
@@ -6449,6 +6467,12 @@
             if (confirm(`¿Estás segura de eliminar la reseña de ${reviews[idx].name}?`)) {
                 reviews.splice(idx, 1);
                 localStorage.setItem('ncv_client_reviews', JSON.stringify(reviews));
+                if (window.dbInstance && window.firestoreUtils) {
+                    try {
+                        const { doc, deleteDoc } = window.firestoreUtils;
+                        deleteDoc(doc(window.dbInstance, 'reviews', reviewId));
+                    } catch(e){}
+                }
                 renderReviewsList();
                 showToast("🗑️ Reseña eliminada de la web.");
             }
