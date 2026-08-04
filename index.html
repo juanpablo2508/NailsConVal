@@ -5507,6 +5507,7 @@
 
             const finalNotes = (window.appliedPromoCode ? `[PROMO: ${window.appliedPromoCode}] ` : '') + notes;
             pendingAppointmentData = {
+                id: 'app_' + Date.now(),
                 dateKey: selectedDateObj ? selectedDateObj.toDateString() : date,
                 time: time,
                 name: name,
