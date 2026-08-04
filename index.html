@@ -6515,8 +6515,8 @@
 
             if (window.dbInstance && window.firestoreUtils) {
                 try {
-                    const { collection, addDoc } = window.firestoreUtils;
-                    addDoc(collection(window.dbInstance, 'community_posts'), newPost);
+                    const { doc, setDoc } = window.firestoreUtils;
+                    setDoc(doc(window.dbInstance, 'community_posts', newPost.id), newPost);
                 } catch(e){}
             }
 
