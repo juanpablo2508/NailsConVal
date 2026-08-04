@@ -646,11 +646,6 @@
                                 <input type="tel" id="form-phone" placeholder="Ej: +57 3192395653" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white">
                             </div>
 
-                            <div class="bg-rose-50/50 border border-rose-100 rounded-xl p-3 shadow-inner mt-2">
-                                <label class="block text-xs font-bold text-rose-800 uppercase mb-1 flex items-center gap-1.5"><i class="fa-solid fa-gift text-rose-500 animate-pulse"></i> Fecha de Cumpleaños <span class="text-rose-500/70 font-normal lowercase">(Regalo Especial)</span></label>
-                                <input type="date" id="form-birthday" class="w-full bg-white border border-rose-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 text-rose-900 font-medium">
-                                <p class="text-[10px] text-rose-600/70 mt-1.5 italic font-medium leading-tight">Opcional. Si lo llenas, te enviaremos un súper bono de descuento en el mes de tu cumpleaños.</p>
-                            </div>
 
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Notas o Diseños de Referencia (Opcional)</label>
@@ -2221,11 +2216,6 @@
                                 </div>
                             </div>
 
-                            <div class="bg-rose-900/20 border border-rose-800/30 rounded-xl p-3 shadow-inner">
-                                <label class="block text-[11px] font-bold text-rose-400 uppercase tracking-wide mb-1 flex items-center gap-1.5"><i class="fa-solid fa-gift text-rose-500"></i> Fecha de Cumpleaños <span class="text-rose-500/70 font-normal lowercase">(Regalo Especial)</span></label>
-                                <input type="date" id="walkin-birthday" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-4 py-2 text-sm text-rose-300 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/30 transition-all font-medium">
-                                <p class="text-[10px] text-rose-500/70 mt-1.5 italic font-medium leading-tight">Opcional. Para enviar el bono del 50% en el mes de su cumpleaños.</p>
-                            </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
@@ -2641,8 +2631,24 @@
                 if (typeof window.refreshUserAppointmentsUI === 'function') window.refreshUserAppointmentsUI();
                 if (typeof window.renderAdminCharts === 'function' && window.isAdminAuthenticated) window.renderAdminCharts();
                 if (typeof window.renderAdminBookingsTable === 'function' && window.isAdminAuthenticated) window.renderAdminBookingsTable();
+                if (typeof window.renderAdminBirthdays === 'function' && window.isAdminAuthenticated) window.renderAdminBirthdays();
             }, (error) => {
                 console.warn("Firestore sync fallback a LocalStorage.");
+            });
+
+            const usersRef = collection(db, 'users');
+            onSnapshot(usersRef, (snapshot) => {
+                const allUsers = [];
+                snapshot.forEach((docSnap) => {
+                    allUsers.push({ ...docSnap.data(), id: docSnap.id });
+                });
+                
+                window.allUsersList = allUsers;
+                localStorage.setItem('ncv_users', JSON.stringify(allUsers));
+
+                if (typeof window.renderAdminBirthdays === 'function' && window.isAdminAuthenticated) window.renderAdminBirthdays();
+            }, (error) => {
+                console.warn("Firestore users sync error", error);
             });
 
             // Sincronización en tiempo real de Servicios personalizados (PC <-> Celular)
@@ -2945,8 +2951,7 @@
             const serviceStr = document.getElementById('walkin-service').value;
             const paidStatus = document.getElementById('walkin-paid-status').value;
             const notes = document.getElementById('walkin-notes').value.trim();
-            const birthdayInput = document.getElementById('walkin-birthday');
-            const birthday = birthdayInput ? birthdayInput.value : '';
+            const birthday = '';
 
             if (!name || !phone || !dateStr || !timeSlot) {
                 showToast("Completa los datos de la cita presencial.", "error");
@@ -3217,7 +3222,7 @@
             if (!container && !tbodyEl) return;
 
             const allApps = window.allAppointmentsList || JSON.parse(localStorage.getItem('ncv_appointments') || '[]');
-            const allUsers = JSON.parse(localStorage.getItem('ncv_users') || '[]');
+            const allUsers = window.allUsersList || JSON.parse(localStorage.getItem('ncv_users') || '[]');
             
             const selectedMonthEl = document.getElementById('admin-birthday-month');
             const widgetMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
@@ -5445,8 +5450,7 @@
             const name = document.getElementById('form-name').value;
             const phone = document.getElementById('form-phone').value;
             const notes = document.getElementById('form-notes').value;
-            const birthdayInput = document.getElementById('form-birthday');
-            const birthday = birthdayInput ? birthdayInput.value : '';
+            const birthday = currentUserSession && currentUserSession.birthdate ? currentUserSession.birthdate : '';
 
             // Validaciones
             if (selectedList.length === 0) {
