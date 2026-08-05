@@ -1568,7 +1568,7 @@
 
 
     <!-- MODAL DE GESTIÓN DE FOTO DE GALERÍA DE DISEÑOS (ADMIN) -->
-    <div id="admin-gallery-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div id="admin-gallery-modal" class="fixed inset-0 z-[60] bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
         <div class="bg-gray-900 text-gray-100 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-purple-500/40 relative">
             <button onclick="closeAddGalleryModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white text-lg cursor-pointer">
                 <i class="fa-solid fa-xmark"></i>
@@ -5994,7 +5994,7 @@
             showToast("Imagen de referencia removida");
         };
 
-        let GALLERY_ITEMS_DATA = [
+        window.GALLERY_ITEMS_DATA = window.GALLERY_ITEMS_DATA || [
             { url: 'https://i.ibb.co/pvVYRKM0/6.jpg', title: 'Spider Web & Pink Glitter' },
             { url: 'https://i.ibb.co/pvBdRQ9T/7.jpg', title: 'Arte Marino 3D, Pulpo & Conchas' },
             { url: 'https://i.ibb.co/PnDQFxX/8.jpg', title: 'French Moderno & Retícula Mármol' },
